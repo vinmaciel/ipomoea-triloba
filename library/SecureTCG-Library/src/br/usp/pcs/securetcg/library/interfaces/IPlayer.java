@@ -1,4 +1,4 @@
-package br.usp.pcs.securetcg.interfaces;
+package br.usp.pcs.securetcg.library.interfaces;
 
 /**
  * Interface used to generate player (owner) related info, like specified key pairs.

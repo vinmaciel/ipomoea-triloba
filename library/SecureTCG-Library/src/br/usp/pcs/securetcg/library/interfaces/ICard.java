@@ -1,4 +1,4 @@
-package br.usp.pcs.securetcg.interfaces;
+package br.usp.pcs.securetcg.library.interfaces;
 
 /**
  * Interface used to generate card (cash) related info, like specified signature and

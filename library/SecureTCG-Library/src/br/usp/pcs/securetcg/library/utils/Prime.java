@@ -1,4 +1,4 @@
-package br.usp.pcs.securetcg.utils;
+package br.usp.pcs.securetcg.library.utils;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -10,7 +10,7 @@ public final class Prime {
 	/**
 	 * Instance of a pseudo-random generator with probabilistic algorithm.
 	 */
-	public static SecureRandom random = new SecureRandom();
+	public static final SecureRandom random = new SecureRandom();
 	
 	
 	/**
@@ -33,8 +33,10 @@ public final class Prime {
 	public static BigInteger getSafePrime(int bitLength) {
 		BigInteger number = BigInteger.TEN;
 		
-		while(!number.subtract(BigInteger.ONE).divide(BIGINTEGER_TWO).isProbablePrime(100))
+		while(!number.subtract(BigInteger.ONE).divide(BIGINTEGER_TWO).isProbablePrime(100)) {
 			number = BigInteger.probablePrime(bitLength, random);
+			System.out.println("number length = " + number.bitLength() + " / " + number.bitCount());
+		}
 		
 		return number;
 	}
