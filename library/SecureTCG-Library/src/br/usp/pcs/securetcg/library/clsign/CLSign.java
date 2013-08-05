@@ -75,9 +75,11 @@ public class CLSign {
 	 * @param pk public key used to sign.
 	 * @param sk private key used to sign.
 	 * @param keySize of the RSA modulus.
-	 * @return byte array containing the signature.
+	 * @param signature signed hash from the message.
 	 */
-	public static byte[] sign(byte[] message, int messageSize, PublicKey pk, PrivateKey sk, int keySize) {
+	public static void sign(byte[] message, int messageSize, PublicKey pk, PrivateKey sk, int keySize, Signature signature) {
+		if(signature == null) signature = new Signature();
+		
 		BigInteger	m = new BigInteger(message),
 					n = new BigInteger(pk.getN()),
 					p = new BigInteger(sk.getP()),
@@ -95,7 +97,9 @@ public class CLSign {
 		
 		//TODO use CRT to calculate answer in acceptable time (decomposing n in p,q primes)
 		
-		return Prime.getDiscreteLogarithm(e, a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c), n).toByteArray();
+		signature.setE(e.toByteArray());
+		signature.setS(s.toByteArray());
+		signature.setV(Prime.getDiscreteLogarithm(e, a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c), n).toByteArray());
 	}
 	
 	/**

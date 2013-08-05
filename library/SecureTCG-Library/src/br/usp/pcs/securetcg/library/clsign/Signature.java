@@ -1,6 +1,7 @@
 package br.usp.pcs.securetcg.library.clsign;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 
 /**
  * POJO to represent the signature of a message in the Camenisch and Lysyanskaya scheme.
@@ -35,5 +36,11 @@ public class Signature implements Serializable {
 		this.v = v;
 	}
 	
+	@Override
+	public String toString() {
+		return	"e=" + new BigInteger(this.e) + 
+				"\ns=" + new BigInteger(this.s) + 
+				"\nv=" + new BigInteger(this.v);
+	}
 	
 }
