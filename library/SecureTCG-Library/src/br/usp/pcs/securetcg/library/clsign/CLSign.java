@@ -1,9 +1,6 @@
 package br.usp.pcs.securetcg.library.clsign;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Arrays;
 
 import br.usp.pcs.securetcg.library.utils.Prime;
 
@@ -82,8 +79,9 @@ public class CLSign {
 	 */
 	public static byte[] sign(byte[] message, int messageSize, PublicKey pk, PrivateKey sk, int keySize) {
 		BigInteger	m = new BigInteger(message),
+					n = new BigInteger(pk.getN()),
 					p = new BigInteger(sk.getP()),
-					q = (new BigInteger(pk.getN())).divide(new BigInteger(sk.getP())),
+					q = n.divide(new BigInteger(sk.getP())),
 					a = new BigInteger(pk.getA()),
 					b = new BigInteger(pk.getB()),
 					c = new BigInteger(pk.getC());
@@ -95,9 +93,9 @@ public class CLSign {
 		
 		BigInteger	s = BigInteger.probablePrime(keySize + messageSize + SECURITY_PARAMETER, Prime.random);
 		
-		// TODO finish
-	
-		return null;
+		//TODO use CRT to calculate answer in acceptable time (decomposing n in p,q primes)
+		
+		return Prime.getDiscreteLogarithm(e, a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c), n).toByteArray();
 	}
 	
 	/**
@@ -105,10 +103,19 @@ public class CLSign {
 	 * 
 	 * @param message that was signed.
 	 * @param signature of the message.
-	 * @param key used to verify the signature.
+	 * @param pk public key used to verify the signature.
 	 * @return <code>true</code> if the signature is valid.
 	 */
-	public static boolean verify(byte[] message, byte[] signature, byte[] key) {
-		return false;
+	public static boolean verify(byte[] message, Signature signature, PublicKey pk) {
+		BigInteger	m = new BigInteger(message),
+					e = new BigInteger(signature.getE()),
+					s = new BigInteger(signature.getS()),
+					v = new BigInteger(signature.getV()),
+					n = new BigInteger(pk.getN()),
+					a = new BigInteger(pk.getA()),
+					b = new BigInteger(pk.getB()),
+					c = new BigInteger(pk.getC());
+		
+		return v.modPow(e, n).equals(a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c));
 	}
 }

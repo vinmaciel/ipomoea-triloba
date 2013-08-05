@@ -107,4 +107,23 @@ public final class Prime {
 		return lastX;
 	}
 	
+	/**
+	 * Calculates the discrete logarithm.
+	 * It will only calculate if its possible to get a unique modular multiplicative inverse.
+	 * 
+	 * @param expoent of the variable.
+	 * @param power equivalence of the exponential in modulus.
+	 * @param modulus limiting the calculus.
+	 * @return a {@link BigInteger} that represents the logarithm, or <code>null</code> if it is not possible 
+	 * to get a unique answer to the problem.
+	 */
+	public static BigInteger getDiscreteLogarithm(BigInteger expoent, BigInteger power, BigInteger modulus) {
+		try {
+			return power.modPow(Prime.getModularMultiplicativeInverse(expoent, modulus.subtract(BigInteger.ONE)), modulus);
+		}
+		catch(NullPointerException npe) {
+			return null;
+		}
+	}
+	
 }
