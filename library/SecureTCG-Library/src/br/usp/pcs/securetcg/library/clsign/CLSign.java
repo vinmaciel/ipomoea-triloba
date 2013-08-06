@@ -104,9 +104,6 @@ public class CLSign {
 		signature.setS(s.toByteArray());
 		signature.setV(Prime.getDiscreteLogarithm(e, a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n), n).toByteArray());
 
-		System.out.println("a^m=" + a.modPow(m, n));
-		System.out.println("b^s=" + b.modPow(s, n));
-		System.out.println("c=" + c);
 		System.out.println("a^m * b^s * c=" + a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n));
 	}
 	
@@ -127,7 +124,10 @@ public class CLSign {
 					a = new BigInteger(pk.getA()),
 					b = new BigInteger(pk.getB()),
 					c = new BigInteger(pk.getC());
+
+		System.out.println("left=" + v.modPow(e, n));
+		System.out.println("right=" + a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n));
 		
-		return v.modPow(e, n).equals(a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c));
+		return v.modPow(e, n).equals(a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n));
 	}
 }

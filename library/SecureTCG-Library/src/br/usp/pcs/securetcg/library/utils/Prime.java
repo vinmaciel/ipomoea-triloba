@@ -57,6 +57,11 @@ public final class Prime {
 		BigInteger	p = Prime.getSafePrime(bitLength/2),
 					q = Prime.getSafePrime(bitLength/2);
 		
+		while(p.equals(q)) {
+			p = Prime.getSafePrime(bitLength/2);
+			q = Prime.getSafePrime(bitLength/2);
+		}
+		
 		System.out.println("Special RSA Modulus " + p.multiply(q) + " generated in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
 		
 		return new BigInteger[] {p, q};
@@ -88,7 +93,7 @@ public final class Prime {
 		long init = Calendar.getInstance().getTimeInMillis();
 		
 		BigInteger	a = power,
-					b = modulus.subtract(BigInteger.ONE);
+					b = modulus;
 		
 		//Oneness: GCD(a, b) == 1
 		if(!a.gcd(b).equals(BigInteger.ONE))
@@ -99,6 +104,8 @@ public final class Prime {
 		
 		BigInteger	lastX = BigInteger.ONE,
 					lastY = BigInteger.ZERO;
+		
+		System.out.println("Euclidean algorithm pass: (a,b)=(" + a + "," + b + ") , (x,y)=(" + x + "," + y + ") , (x',y')=(" + lastX + "," + lastY + ")");
 		
 		while(!b.equals(BigInteger.ZERO)) {
 			BigInteger quotient = a.divide(b);
@@ -114,11 +121,13 @@ public final class Prime {
 			aux = y;
 			y = lastY.subtract(quotient.multiply(y));
 			lastY = aux;
+			
+			System.out.println("Euclidean algorithm pass: (a,b)=(" + a + "," + b + ") , (x,y)=(" + x + "," + y + ") , (x',y')=(" + lastX + "," + lastY + ")");
 		}
 		
-		System.out.println("Multiplicative inverse " + lastX + " calculated in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
+		System.out.println("Multiplicative inverse " + lastX.mod(modulus) + " calculated in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
 		
-		return lastX;
+		return lastX.mod(modulus);
 	}
 	
 	/**
@@ -135,7 +144,7 @@ public final class Prime {
 		try {
 			long init = Calendar.getInstance().getTimeInMillis();
 			BigInteger log = power.modPow(Prime.getModularMultiplicativeInverse(expoent, modulus.subtract(BigInteger.ONE)), modulus); 
-			System.out.println("Multiplicative inverse " + log + " calculated in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
+			System.out.println("Discrete logarithm " + log + " calculated in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
 			return log;
 		}
 		catch(NullPointerException npe) {
