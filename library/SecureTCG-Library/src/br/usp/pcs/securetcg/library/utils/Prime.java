@@ -2,6 +2,7 @@ package br.usp.pcs.securetcg.library.utils;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.Calendar;
 
 public final class Prime {
 	
@@ -10,7 +11,7 @@ public final class Prime {
 	/**
 	 * Instance of a pseudo-random generator with probabilistic algorithm.
 	 */
-	public static final SecureRandom random = new SecureRandom();
+	public static final SecureRandom random = new SecureRandom(BigInteger.valueOf(Calendar.getInstance().getTimeInMillis()).toByteArray());
 	
 	
 	/**
@@ -31,12 +32,15 @@ public final class Prime {
 	 * @return a {@link BigInteger} that represents the safe prime generated.
 	 */
 	public static BigInteger getSafePrime(int bitLength) {
+		long init = Calendar.getInstance().getTimeInMillis();
+		
 		BigInteger number = BigInteger.TEN;
 		
 		while(!number.subtract(BigInteger.ONE).divide(BIGINTEGER_TWO).isProbablePrime(100)) {
 			number = BigInteger.probablePrime(bitLength, random);
-			System.out.println("number length = " + number.bitLength() + " / " + number.bitCount());
 		}
+		
+		System.out.println("Safe random " + number + " generated in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
 		
 		return number;
 	}
@@ -44,13 +48,18 @@ public final class Prime {
 	/**
 	 * Generates a RSA modulus n = p*q where p and q are safe primes. 
 	 * 
-	 * @param p component of the modulus.
 	 * @param bitLength size of the modulus.
-	 * @return a {@link BigInteger} that represents the modulus generated.
+	 * @return a 2-sized {@link BigInteger} array containing the components of the modulus.
 	 */
-	public static BigInteger getSpecialRSAModulus(BigInteger p, int bitLength) {
-		BigInteger q = Prime.getSafePrime(bitLength/2);
-		return p.multiply(q);
+	public static BigInteger[] getSpecialRSAModulus(int bitLength) {
+		long init = Calendar.getInstance().getTimeInMillis();
+		
+		BigInteger	p = Prime.getSafePrime(bitLength/2),
+					q = Prime.getSafePrime(bitLength/2);
+		
+		System.out.println("Special RSA Modulus " + p.multiply(q) + " generated in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
+		
+		return new BigInteger[] {p, q};
 	}
 	
 	/**
@@ -75,6 +84,9 @@ public final class Prime {
 	 * more than one answer to the problem.
 	 */
 	public static BigInteger getModularMultiplicativeInverse(BigInteger power, BigInteger modulus) {
+		//FIXME probably used the euclidean algorithm wrongly
+		long init = Calendar.getInstance().getTimeInMillis();
+		
 		BigInteger	a = power,
 					b = modulus.subtract(BigInteger.ONE);
 		
@@ -104,6 +116,8 @@ public final class Prime {
 			lastY = aux;
 		}
 		
+		System.out.println("Multiplicative inverse " + lastX + " calculated in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
+		
 		return lastX;
 	}
 	
@@ -119,7 +133,10 @@ public final class Prime {
 	 */
 	public static BigInteger getDiscreteLogarithm(BigInteger expoent, BigInteger power, BigInteger modulus) {
 		try {
-			return power.modPow(Prime.getModularMultiplicativeInverse(expoent, modulus.subtract(BigInteger.ONE)), modulus);
+			long init = Calendar.getInstance().getTimeInMillis();
+			BigInteger log = power.modPow(Prime.getModularMultiplicativeInverse(expoent, modulus.subtract(BigInteger.ONE)), modulus); 
+			System.out.println("Multiplicative inverse " + log + " calculated in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
+			return log;
 		}
 		catch(NullPointerException npe) {
 			return null;

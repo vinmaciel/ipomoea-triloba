@@ -17,7 +17,7 @@ public class CLSign {
 	public static final int MODULUS_LENGTH = 1024;
 	public static final int MESSAGE_LENGTH = 160;
 	
-	public static final int SECURITY_PARAMETER = 160;
+	public static final int SECURITY_PARAMETER = 8;
 	
 	
 	/**
@@ -35,8 +35,11 @@ public class CLSign {
 		if(pk == null) pk = new PublicKey();
 		if(sk == null) sk = new PrivateKey();
 		
-		BigInteger	p = Prime.getSafePrime(keySize/2),
-					n = Prime.getSpecialRSAModulus(p, keySize),
+		BigInteger[] rsa	= Prime.getSpecialRSAModulus(keySize);
+		
+		BigInteger	p = rsa[0],
+					q = rsa[1],
+					n = p.multiply(q),
 					a = Prime.getQuadaticResidue(n, keySize),
 					b = Prime.getQuadaticResidue(n, keySize),
 					c = Prime.getQuadaticResidue(n, keySize);
@@ -90,7 +93,7 @@ public class CLSign {
 		
 		BigInteger	e = BigInteger.TEN;
 		while(e.compareTo(Prime.BIGINTEGER_TWO.pow(messageSize + 1)) <= 0) {
-			e = Prime.getPrime(message.length + 2);
+			e = Prime.getPrime(messageSize + 2);
 		}
 		
 		BigInteger	s = BigInteger.probablePrime(keySize + messageSize + SECURITY_PARAMETER, Prime.random);
@@ -99,7 +102,12 @@ public class CLSign {
 		
 		signature.setE(e.toByteArray());
 		signature.setS(s.toByteArray());
-		signature.setV(Prime.getDiscreteLogarithm(e, a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c), n).toByteArray());
+		signature.setV(Prime.getDiscreteLogarithm(e, a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n), n).toByteArray());
+
+		System.out.println("a^m=" + a.modPow(m, n));
+		System.out.println("b^s=" + b.modPow(s, n));
+		System.out.println("c=" + c);
+		System.out.println("a^m * b^s * c=" + a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n));
 	}
 	
 	/**
