@@ -1,6 +1,7 @@
 package br.usp.pcs.securetcg.library.clsign;
 
 import java.math.BigInteger;
+import java.util.Calendar;
 
 import br.usp.pcs.securetcg.library.utils.Prime;
 
@@ -32,6 +33,8 @@ public class CLSign {
 	 * 
 	 */
 	public static void generateKeyPair(int keySize, PublicKey pk, PrivateKey sk) {
+		long init = Calendar.getInstance().getTimeInMillis();
+		
 		if(pk == null) pk = new PublicKey();
 		if(sk == null) sk = new PrivateKey();
 		
@@ -50,11 +53,13 @@ public class CLSign {
 		pk.setC(c.toByteArray());
 		
 		sk.setP(p.toByteArray());
+		
+		System.out.println("Key pair generated in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
 	}
 
 	/**
 	 * Generate a pair of a public key (PK) and a private key (SK) as described in CLSign scheme with default size. 
-	 * See {@link CLSign#generateKeyPair} for more details.
+	 * See {@link CLSign#generateKeyPair(int, PublicKey, PrivateKey)} for more details.
 	 * 
 	 * @param pk public key to be generated.
 	 * @param sk private key to be generated.
@@ -75,6 +80,8 @@ public class CLSign {
 	 * @param signature signed hash from the message.
 	 */
 	public static void sign(byte[] message, int messageSize, PublicKey pk, PrivateKey sk, int keySize, Signature signature) {
+		long init = Calendar.getInstance().getTimeInMillis();
+		
 		if(signature == null) signature = new Signature();
 		
 		BigInteger	m = new BigInteger(message),
@@ -95,17 +102,31 @@ public class CLSign {
 		signature.setE(e.toByteArray());
 		signature.setS(s.toByteArray());
 		
-		//TODO use CRT to calculate deterministically in acceptable time (decomposing n in p,q primes)
-		
 		BigInteger	rightMember = a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n),
 					logP = Prime.getDiscreteLogarithm(e, rightMember, p),
 					logQ = Prime.getDiscreteLogarithm(e, rightMember, q);
 		
-		//(...) given the results for the equation system, find the solution for mod n=pq
+//		System.out.println("a^m * b^s * c=" + rightMember);
 		
-		signature.setV(null);
-
-		System.out.println("a^m * b^s * c=" + a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n));
+		signature.setV(	Prime.getCRTResult(
+						new BigInteger[]{logP, logQ}, 
+						new BigInteger[]{p, q}	).toByteArray() );
+		
+		System.out.println("Signed in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
+	}
+	
+	/**
+	 * Create a signature based on the message and a secret key, with default key size.
+	 * See {@link CLSign#sign(byte[], int, PublicKey, PrivateKey, int, Signature)} for more details.
+	 * 
+	 * @param message to be signed.
+	 * @param messageSize length (in bits) of the message.
+	 * @param pk public key used to sign.
+	 * @param sk private key used to sign.
+	 * @param signature signed hash from the message.
+	 */
+	public static void sign(byte[] message, int messageSize, PublicKey pk, PrivateKey sk, Signature signature) {
+		CLSign.sign(message, messageSize, pk, sk, MODULUS_LENGTH, signature);
 	}
 	
 	/**
@@ -117,6 +138,8 @@ public class CLSign {
 	 * @return <code>true</code> if the signature is valid.
 	 */
 	public static boolean verify(byte[] message, Signature signature, PublicKey pk) {
+		long init = Calendar.getInstance().getTimeInMillis();
+		
 		BigInteger	m = new BigInteger(message),
 					e = new BigInteger(signature.getE()),
 					s = new BigInteger(signature.getS()),
@@ -126,9 +149,13 @@ public class CLSign {
 					b = new BigInteger(pk.getB()),
 					c = new BigInteger(pk.getC());
 
-		System.out.println("left=" + v.modPow(e, n));
-		System.out.println("right=" + a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n));
+//		System.out.println("left=" + v.modPow(e, n));
+//		System.out.println("right=" + a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n));
 		
-		return v.modPow(e, n).equals(a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n));
+		boolean result = v.modPow(e, n).equals(a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n));
+		
+		System.out.println("Verified in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
+		
+		return result;
 	}
 }
