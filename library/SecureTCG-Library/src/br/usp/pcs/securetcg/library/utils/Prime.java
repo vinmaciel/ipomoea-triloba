@@ -80,57 +80,6 @@ public final class Prime {
 	}
 	
 	/**
-	 * Generates the modular multiplicative inverse based on the extended euclidean algorithm. 
-	 * It will only calculate the inverse if the power and modulus-1 are coprimes.
-	 * 
-	 * @param power to be compared.
-	 * @param modulus of the operation.
-	 * @return a {@link BigInteger} that represents the inverse, or <code>null</code> if there can be 
-	 * more than one answer to the problem.
-	 */
-	public static BigInteger getModularMultiplicativeInverse(BigInteger power, BigInteger modulus) {
-		//FIXME probably used the euclidean algorithm wrongly
-		long init = Calendar.getInstance().getTimeInMillis();
-		
-		BigInteger	a = power,
-					b = modulus;
-		
-		//Oneness: GCD(a, b) == 1
-		if(!a.gcd(b).equals(BigInteger.ONE))
-			return null;
-		
-		BigInteger	x = BigInteger.ZERO,
-					y = BigInteger.ONE;
-		
-		BigInteger	lastX = BigInteger.ONE,
-					lastY = BigInteger.ZERO;
-		
-		System.out.println("Euclidean algorithm pass: (a,b)=(" + a + "," + b + ") , (x,y)=(" + x + "," + y + ") , (x',y')=(" + lastX + "," + lastY + ")");
-		
-		while(!b.equals(BigInteger.ZERO)) {
-			BigInteger quotient = a.divide(b);
-			
-			BigInteger aux = a;
-			a = b;
-			b = aux.mod(b);
-			
-			aux = x;
-			x = lastX.subtract(quotient.multiply(x));
-			lastX = aux;
-			
-			aux = y;
-			y = lastY.subtract(quotient.multiply(y));
-			lastY = aux;
-			
-			System.out.println("Euclidean algorithm pass: (a,b)=(" + a + "," + b + ") , (x,y)=(" + x + "," + y + ") , (x',y')=(" + lastX + "," + lastY + ")");
-		}
-		
-		System.out.println("Multiplicative inverse " + lastX.mod(modulus) + " calculated in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
-		
-		return lastX.mod(modulus);
-	}
-	
-	/**
 	 * Calculates the discrete logarithm.
 	 * It will only calculate if its possible to get a unique modular multiplicative inverse.
 	 * 
@@ -140,10 +89,11 @@ public final class Prime {
 	 * @return a {@link BigInteger} that represents the logarithm, or <code>null</code> if it is not possible 
 	 * to get a unique answer to the problem.
 	 */
-	public static BigInteger getDiscreteLogarithm(BigInteger expoent, BigInteger power, BigInteger modulus) {
+	public static BigInteger getDiscreteLogarithm(BigInteger expoent, BigInteger power, BigInteger modulus) throws ArithmeticException {
 		try {
 			long init = Calendar.getInstance().getTimeInMillis();
-			BigInteger log = power.modPow(Prime.getModularMultiplicativeInverse(expoent, modulus.subtract(BigInteger.ONE)), modulus); 
+			BigInteger log = power.modPow(expoent.modInverse(modulus.subtract(BigInteger.ONE)), modulus);
+			System.out.println("Multiplicative inverse: " + expoent.modInverse(modulus.subtract(BigInteger.ONE)));
 			System.out.println("Discrete logarithm " + log + " calculated in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
 			return log;
 		}

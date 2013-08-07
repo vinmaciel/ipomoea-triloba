@@ -44,12 +44,6 @@ public class CLSign {
 					b = Prime.getQuadaticResidue(n, keySize),
 					c = Prime.getQuadaticResidue(n, keySize);
 
-		System.out.println("p=" + p.toString());
-		System.out.println("n=" + n.toString());
-		System.out.println("a=" + a.toString());
-		System.out.println("b=" + b.toString());
-		System.out.println("c=" + c.toString());
-
 		pk.setN(n.toByteArray());
 		pk.setA(a.toByteArray());
 		pk.setB(b.toByteArray());
@@ -98,11 +92,18 @@ public class CLSign {
 		
 		BigInteger	s = BigInteger.probablePrime(keySize + messageSize + SECURITY_PARAMETER, Prime.random);
 		
-		//TODO use CRT to calculate answer in acceptable time (decomposing n in p,q primes)
-		
 		signature.setE(e.toByteArray());
 		signature.setS(s.toByteArray());
-		signature.setV(Prime.getDiscreteLogarithm(e, a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n), n).toByteArray());
+		
+		//TODO use CRT to calculate deterministically in acceptable time (decomposing n in p,q primes)
+		
+		BigInteger	rightMember = a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n),
+					logP = Prime.getDiscreteLogarithm(e, rightMember, p),
+					logQ = Prime.getDiscreteLogarithm(e, rightMember, q);
+		
+		//(...) given the results for the equation system, find the solution for mod n=pq
+		
+		signature.setV(null);
 
 		System.out.println("a^m * b^s * c=" + a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n));
 	}

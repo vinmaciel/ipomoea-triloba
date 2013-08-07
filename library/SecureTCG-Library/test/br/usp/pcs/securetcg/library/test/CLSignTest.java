@@ -18,9 +18,9 @@ public class CLSignTest {
 		
 		CLSign.generateKeyPair(KEY_SIZE, pk, sk);
 		
-		System.out.println("sk");
+		System.out.println("sk:");
 		System.out.println(sk.toString());
-		System.out.println("pk");
+		System.out.println("pk:");
 		System.out.println(pk.toString());
 		
 		byte[] message = new byte[2];
