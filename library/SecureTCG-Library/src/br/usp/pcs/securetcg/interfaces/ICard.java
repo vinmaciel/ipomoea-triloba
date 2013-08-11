@@ -10,14 +10,12 @@ package br.usp.pcs.securetcg.interfaces;
 public abstract class ICard {
 	
 	private long id;
-	
 	private byte[] signature;
 	
 	
 	public long getId() {
 		return id;
 	}
-	
 	public void setId(long id) {
 		this.id = id;
 	}
@@ -25,7 +23,6 @@ public abstract class ICard {
 	public byte[] getSignature() {
 		return signature;
 	}
-	
 	public void setSignature(byte[] signature) {
 		this.signature = signature;
 	}

@@ -6,19 +6,19 @@
     android:gravity="center" >
     
     <Button
-        android:id="@+main/market_button"
+        android:id="@+home/market_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/market_button" />
     
     <Button
-        android:id="@+main/decks_button"
+        android:id="@+home/decks_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/decks_button" />
     
     <Button
-        android:id="@+main/cards_button"
+        android:id="@+home/cards_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/cards_button" />

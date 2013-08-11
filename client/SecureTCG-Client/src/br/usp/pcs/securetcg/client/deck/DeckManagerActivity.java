@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -31,6 +30,7 @@ public class DeckManagerActivity extends Activity {
 	private List<Object> decks;
 	private int selected = -1;
 	
+	/** Life-cycle Methods **/
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -40,42 +40,16 @@ public class DeckManagerActivity extends Activity {
 		setLayoutObjects();
 	}
 	
+	/** Menu Methods **/
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		createDeck = menu.add("New Deck");
 		updateDeck = menu.add("Manage Deck");
 		destroyDeck = menu.add("Remove Deck");
 		
-		createDeck.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			
-			@Override
-			public boolean onMenuItemClick(MenuItem item) {
-				// TODO create new deck on list and database
-				return false;
-			}
-		});
-		
-		updateDeck.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			
-			@Override
-			public boolean onMenuItemClick(MenuItem item) {
-				Intent intent = new Intent(DeckManagerActivity.this, CardManagerActivity.class);
-				// TODO change selected for the name of the deck (or its index) in the database
-				intent.putExtra("DECK", selected);
-				startActivity(intent);
-				
-				return false;
-			}
-		});
-		
-		destroyDeck.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			
-			@Override
-			public boolean onMenuItemClick(MenuItem item) {
-				// TODO remove deck from list and database
-				return false;
-			}
-		});
+		createDeck.setOnMenuItemClickListener(new OnClickCreateDeck());
+		updateDeck.setOnMenuItemClickListener(new OnClickUpdateDeck());
+		destroyDeck.setOnMenuItemClickListener(new OnClickDestroyDeck());
 		
 		return true;
 	}
@@ -94,22 +68,17 @@ public class DeckManagerActivity extends Activity {
 		return true;
 	}
 	
+	/** Layout Methods **/
 	private void getLayoutObjects() {
 		deckList = (ListView) findViewById(R.deck.deck_list);
 	}
 	
 	private void setLayoutObjects() {
 		deckList.setAdapter(new DeckAdapter());
-		deckList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-			@Override
-			public void onItemClick(AdapterView<?> parent, View child, int position, long id) {
-				if(position == selected) selected = -1;
-				else selected = position;
-			}
-		});
+		deckList.setOnItemClickListener(new OnClickSelectDeck());
 	}
 	
+	/** List Methods **/
 	// TODO change from Object to Deck
 	private class DeckAdapter extends ArrayAdapter<Object> {
 		
@@ -134,5 +103,50 @@ public class DeckManagerActivity extends Activity {
 			
 			return row;
 		}
+	}
+	
+	/** OnClick Listeners **/
+	private class OnClickSelectDeck implements AdapterView.OnItemClickListener {
+
+		@Override
+		public void onItemClick(AdapterView<?> parent, View child, int position, long id) {
+			if(position == selected) selected = -1;
+			else selected = position;
+		}
+		
+	}
+	
+	private class OnClickCreateDeck implements MenuItem.OnMenuItemClickListener {
+
+		@Override
+		public boolean onMenuItemClick(MenuItem item) {
+			// TODO create new deck on list and database
+			return false;
+		}
+		
+	}
+	
+	private class OnClickUpdateDeck implements MenuItem.OnMenuItemClickListener {
+
+		@Override
+		public boolean onMenuItemClick(MenuItem item) {
+			Intent intent = new Intent(DeckManagerActivity.this, CardManagerActivity.class);
+			// TODO change selected for the name of the deck (or its index) in the database
+			intent.putExtra("DECK", selected);
+			startActivity(intent);
+			
+			return false;
+		}
+		
+	}
+	
+	private class OnClickDestroyDeck implements MenuItem.OnMenuItemClickListener {
+
+		@Override
+		public boolean onMenuItemClick(MenuItem item) {
+			// TODO remove deck from list and database
+			return false;
+		}
+		
 	}
 }

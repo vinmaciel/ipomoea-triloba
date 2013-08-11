@@ -24,31 +24,37 @@ public final class R {
     public static final class drawable {
         public static final int ic_launcher=0x7f020000;
     }
+    public static final class home {
+        public static final int cards_button=0x7f080002;
+        public static final int decks_button=0x7f080001;
+        public static final int market_button=0x7f080000;
+    }
     public static final class layout {
         public static final int card_manager_activity=0x7f030000;
         public static final int card_row=0x7f030001;
         public static final int deck_manager_activity=0x7f030002;
         public static final int deck_row=0x7f030003;
-        public static final int main_activity=0x7f030004;
-        public static final int web_browser=0x7f030005;
+        public static final int home_activity=0x7f030004;
+        public static final int login_activity=0x7f030005;
+        public static final int web_browser=0x7f030006;
     }
-    public static final class main {
-        public static final int cards_button=0x7f080002;
-        public static final int decks_button=0x7f080001;
-        public static final int market_button=0x7f080000;
+    public static final class login {
+        public static final int progress=0x7f090000;
     }
     public static final class market {
-        public static final int webview=0x7f090000;
+        public static final int webview=0x7f0a0000;
     }
     public static final class string {
         public static final int app_name=0x7f040000;
-        public static final int card_info_title=0x7f040004;
-        public static final int card_manager_title=0x7f040003;
-        public static final int cards_button=0x7f040007;
-        public static final int deck_manager_title=0x7f040002;
-        public static final int decks_button=0x7f040006;
-        public static final int market_button=0x7f040005;
-        public static final int market_title=0x7f040001;
+        public static final int card_info_title=0x7f040006;
+        public static final int card_manager_title=0x7f040005;
+        public static final int cards_button=0x7f040009;
+        public static final int deck_manager_title=0x7f040004;
+        public static final int decks_button=0x7f040008;
+        public static final int home_title=0x7f040002;
+        public static final int login_title=0x7f040001;
+        public static final int market_button=0x7f040007;
+        public static final int market_title=0x7f040003;
     }
     public static final class style {
         /** 

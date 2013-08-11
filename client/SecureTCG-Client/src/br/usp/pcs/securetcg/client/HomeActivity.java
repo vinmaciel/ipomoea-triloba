@@ -16,45 +16,55 @@ public class HomeActivity extends Activity {
 	private Button decksButton;
 	private Button cardsButton;
 	
+	/** Life-cycle Methods **/
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		// FIXME layout
-		setContentView(R.layout.main_activity);
+		setContentView(R.layout.home_activity);
 		
 		getLayoutObjects();
 		setLayoutObjects();
 	}
 	
+	/** Layout Methods **/
 	private void getLayoutObjects() {
-		marketButton = (Button) findViewById(R.main.market_button);
-		decksButton = (Button) findViewById(R.main.decks_button);
-		cardsButton = (Button) findViewById(R.main.cards_button);
+		marketButton = (Button) findViewById(R.home.market_button);
+		decksButton = (Button) findViewById(R.home.decks_button);
+		cardsButton = (Button) findViewById(R.home.cards_button);
 	}
 	
 	private void setLayoutObjects() {
-		marketButton.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				startActivity(new Intent(HomeActivity.this, MarketActivity.class));
-			}
-		});
+		marketButton.setOnClickListener(new OnClickMarket());
+		decksButton.setOnClickListener(new OnClickDeck());
+		cardsButton.setOnClickListener(new OnClickCards());
+	}
+	
+	/** OnClick Listeners **/
+	private class OnClickMarket implements View.OnClickListener {
+
+		@Override
+		public void onClick(View v) {
+			startActivity(new Intent(HomeActivity.this, MarketActivity.class));
+		}
 		
-		decksButton.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				startActivity(new Intent(HomeActivity.this, DeckManagerActivity.class));
-			}
-		});
+	}
+	
+	private class OnClickDeck implements View.OnClickListener {
+
+		@Override
+		public void onClick(View v) {
+			startActivity(new Intent(HomeActivity.this, DeckManagerActivity.class));
+		}
 		
-		cardsButton.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				startActivity(new Intent(HomeActivity.this, CardManagerActivity.class));
-			}
-		});
+	}
+	
+	private class OnClickCards implements View.OnClickListener {
+
+		@Override
+		public void onClick(View v) {
+			startActivity(new Intent(HomeActivity.this, CardManagerActivity.class));
+		}
+		
 	}
 }
