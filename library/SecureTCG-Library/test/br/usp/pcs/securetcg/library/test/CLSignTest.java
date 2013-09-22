@@ -24,20 +24,21 @@ public class CLSignTest {
 			System.out.println("pk:");
 			System.out.println(pk.toString());
 			
-			byte[] message = new byte[160];
+			byte[][] messages = new byte[1][];
+			messages[0] = new byte[160];
 			Random gen = new Random();
-			gen.nextBytes(message);
+			gen.nextBytes(messages[0]);
 			
-			System.out.println("m="+new BigInteger(message));
+			System.out.println("m="+new BigInteger(messages[0]));
 			
 			Signature signature = new Signature();
 			
-			CLSign.sign(message, message.length*8, pk, sk, signature);
+			CLSign.sign(messages, messages[0].length*8, pk, sk, signature);
 			
 			System.out.println("signature");
 			System.out.println(signature.toString());
 			
-			result = CLSign.verify(message, signature, pk);
+			result = CLSign.verify(messages, signature, pk);
 			System.out.println(""+result);
 			System.out.println("");
 			System.out.println("");

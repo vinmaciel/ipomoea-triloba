@@ -80,8 +80,8 @@ public final class Prime {
 	}
 	
 	/**
-	 * Calculates the discrete logarithm.
-	 * It will only calculate if its possible to get a unique modular multiplicative inverse.
+	 * Calculates the discrete logarithm <code>x</code> in <code>x<SUP>expoent</SUP> = power (mod modulus)</code>.
+	 * It will only calculate if it's possible to get a unique modular multiplicative inverse.
 	 * 
 	 * @param expoent of the variable.
 	 * @param power equivalence of the exponential in modulus.

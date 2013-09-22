@@ -10,23 +10,23 @@ import java.math.BigInteger;
  *
  */
 public class Signature implements Serializable {
-	
+
+	private byte[] a;
 	private byte[] e;
-	private byte[] s;
 	private byte[] v;
+	
+	public byte[] getA() {
+		return a;
+	}
+	public void setA(byte[] a) {
+		this.a = a;
+	}
 	
 	public byte[] getE() {
 		return e;
 	}
 	public void setE(byte[] e) {
 		this.e = e;
-	}
-	
-	public byte[] getS() {
-		return s;
-	}
-	public void setS(byte[] s) {
-		this.s = s;
 	}
 	
 	public byte[] getV() {
@@ -38,8 +38,8 @@ public class Signature implements Serializable {
 	
 	@Override
 	public String toString() {
-		return	"e=" + new BigInteger(this.e) + 
-				"\ns=" + new BigInteger(this.s) + 
+		return	"a=" + new BigInteger(this.a) + 
+				"\ne=" + new BigInteger(this.e) + 
 				"\nv=" + new BigInteger(this.v);
 	}
 	

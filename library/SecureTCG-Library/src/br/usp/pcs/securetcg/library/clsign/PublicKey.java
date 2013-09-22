@@ -14,9 +14,9 @@ public class PublicKey implements Serializable {
 	public PublicKey() {}
 	
 	private byte[] n;
-	private byte[] a;
-	private byte[] b;
-	private byte[] c;
+	private byte[][] r;
+	private byte[] s;
+	private byte[] z;
 	
 	public byte[] getN() {
 		return n;
@@ -24,34 +24,51 @@ public class PublicKey implements Serializable {
 	public void setN(byte[] n) {
 		this.n = n;
 	}
+
+	public byte[][] getR() {
+		return r;
+	}
+	public void setR(byte[][] r) {
+		this.r = r;
+	}
+	public byte[] getR(int index) {
+		return r[index];
+	}
+	public void setR(byte[] r, int index) {
+		this.r[index] = r;
+	}
+	public int getRSize() {
+		return r.length;
+	}
+	public void allocR(int size) {
+		r = new byte[size][];
+	}
 	
-	public byte[] getA() {
-		return a;
+	public byte[] getS() {
+		return s;
 	}
-	public void setA(byte[] a) {
-		this.a = a;
-	}
-	
-	public byte[] getB() {
-		return b;
-	}
-	public void setB(byte[] b) {
-		this.b = b;
+	public void setS(byte[] s) {
+		this.s = s;
 	}
 	
-	public byte[] getC() {
-		return c;
+	public byte[] getZ() {
+		return z;
 	}
-	public void setC(byte[] c) {
-		this.c = c;
+	public void setZ(byte[] z) {
+		this.z = z;
 	}
 	
 	@Override
 	public String toString() {
-		return	"n=" + new BigInteger(this.n) + 
-				"\na=" + new BigInteger(this.a) + 
-				"\nb=" + new BigInteger(this.b) + 
-				"\nc=" + new BigInteger(this.c);
+		String string = "";
+		
+		string += "n=" + new BigInteger(this.n);
+		for(int i = 0; i < r.length; i++)
+			string += "\nr[" + i + "]=" + new BigInteger(this.r[i]);
+		string += "\ns=" + new BigInteger(this.s);
+		string += "\nz=" + new BigInteger(this.z);
+		
+		return string;
 	}
 	
 }
