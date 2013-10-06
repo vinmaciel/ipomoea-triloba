@@ -37,11 +37,11 @@ public class CLSign {
 	 * @param sk private key to be generated.
 	 * 
 	 */
-	public static void generateKeyPair(int keySize, int residueSize, PublicKey pk, PrivateKey sk) {
+	public static void generateKeyPair(int keySize, int residueSize, CLPublicKey pk, CLPrivateKey sk) {
 		long init = Calendar.getInstance().getTimeInMillis();
 		
-		if(pk == null) pk = new PublicKey();
-		if(sk == null) sk = new PrivateKey();
+		if(pk == null) pk = new CLPublicKey();
+		if(sk == null) sk = new CLPrivateKey();
 		
 		BigInteger[] rsa	= Prime.getSpecialRSAModulus(keySize);
 		
@@ -71,13 +71,13 @@ public class CLSign {
 
 	/**
 	 * Generate a pair of a public key (PK) and a private key (SK) as described in CLSign scheme with default size. 
-	 * See {@link CLSign#generateKeyPair(int, PublicKey, PrivateKey)} for more details.
+	 * See {@link CLSign#generateKeyPair(int, CLPublicKey, CLPrivateKey)} for more details.
 	 * 
 	 * @param pk public key to be generated.
 	 * @param sk private key to be generated.
 	 * 
 	 */
-	public static void generateKeyPair(PublicKey pk, PrivateKey sk) {
+	public static void generateKeyPair(CLPublicKey pk, CLPrivateKey sk) {
 		CLSign.generateKeyPair(MODULUS_LENGTH, MESSAGE_SET, pk, sk);
 	}
 	
@@ -91,10 +91,10 @@ public class CLSign {
 	 * @param keySize of the RSA modulus.
 	 * @param signature signed hash from the message.
 	 */
-	public static void sign(byte[][] messages, int messageSize, PublicKey pk, PrivateKey sk, int keySize, Signature signature) {
+	public static void sign(byte[][] messages, int messageSize, CLPublicKey pk, CLPrivateKey sk, int keySize, CLSignature signature) {
 		long init = Calendar.getInstance().getTimeInMillis();
 		
-		if(signature == null) signature = new Signature();
+		if(signature == null) signature = new CLSignature();
 		
 		BigInteger	n = new BigInteger(pk.getN()),
 					p = new BigInteger(sk.getP()),
@@ -137,7 +137,7 @@ public class CLSign {
 	
 	/**
 	 * Create a signature based on the message and a secret key, with default key size.
-	 * See {@link CLSign#sign(byte[], int, PublicKey, PrivateKey, int, Signature)} for more details.
+	 * See {@link CLSign#sign(byte[], int, CLPublicKey, CLPrivateKey, int, CLSignature)} for more details.
 	 * 
 	 * @param message to be signed.
 	 * @param messageSize length (in bits) of the message.
@@ -145,7 +145,7 @@ public class CLSign {
 	 * @param sk private key used to sign.
 	 * @param signature signed hash from the message.
 	 */
-	public static void sign(byte[][] message, int messageSize, PublicKey pk, PrivateKey sk, Signature signature) {
+	public static void sign(byte[][] message, int messageSize, CLPublicKey pk, CLPrivateKey sk, CLSignature signature) {
 		CLSign.sign(message, messageSize, pk, sk, MODULUS_LENGTH, signature);
 	}
 	
@@ -157,7 +157,7 @@ public class CLSign {
 	 * @param pk public key used to verify the signature.
 	 * @return <code>true</code> if the signature is valid.
 	 */
-	public static boolean verify(byte[][] messages, Signature signature, PublicKey pk) {
+	public static boolean verify(byte[][] messages, CLSignature signature, CLPublicKey pk) {
 		long init = Calendar.getInstance().getTimeInMillis();
 		
 		BigInteger	a = new BigInteger(signature.getA()),

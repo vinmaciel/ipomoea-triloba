@@ -4,9 +4,9 @@ import java.math.BigInteger;
 import java.util.Random;
 
 import br.usp.pcs.securetcg.library.clsign.CLSign;
-import br.usp.pcs.securetcg.library.clsign.PrivateKey;
-import br.usp.pcs.securetcg.library.clsign.PublicKey;
-import br.usp.pcs.securetcg.library.clsign.Signature;
+import br.usp.pcs.securetcg.library.clsign.CLPrivateKey;
+import br.usp.pcs.securetcg.library.clsign.CLPublicKey;
+import br.usp.pcs.securetcg.library.clsign.CLSignature;
 
 public class CLSignTest {
 	
@@ -14,8 +14,8 @@ public class CLSignTest {
 		boolean result = true;
 		
 		do{
-			PrivateKey sk = new PrivateKey();
-			PublicKey pk = new PublicKey();
+			CLPrivateKey sk = new CLPrivateKey();
+			CLPublicKey pk = new CLPublicKey();
 			
 			CLSign.generateKeyPair(pk, sk);
 			
@@ -33,7 +33,7 @@ public class CLSignTest {
 				System.out.println("m[" + i + "]="+new BigInteger(messages[i]));
 			}
 			
-			Signature signature = new Signature();
+			CLSignature signature = new CLSignature();
 			
 			CLSign.sign(messages, 160*8, pk, sk, signature);
 			
