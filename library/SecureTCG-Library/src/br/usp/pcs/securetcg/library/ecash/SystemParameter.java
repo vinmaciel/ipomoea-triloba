@@ -14,6 +14,7 @@ public final class SystemParameter {
 	private SystemParameter() {}
 	private static SystemParameter instance = null;
 	
+	/* Lazy singleton instantiation */
 	public static SystemParameter get() {
 		if(instance == null) instance = new SystemParameter();
 		return instance;
@@ -27,6 +28,12 @@ public final class SystemParameter {
 	/** Generator of the commitment for user key generator */
 	//FIXME is G really global???
 	private BigInteger g;
+	
+	/* Pedersen commitment */
+	/** Pedersen commitment: Order of group G */
+	private int pedOrder;
+	/** Pedersen commitment: Generator set from G */
+	private byte[][] pedGenerator;
 
 	public int getK() {
 		return k;
@@ -47,6 +54,35 @@ public final class SystemParameter {
 	}
 	public void setG(BigInteger g) {
 		this.g = g;
+	}
+
+	/** Pedersen commitment: GET order of group G */
+	public int getPedOrder() {
+		return pedOrder;
+	}
+	/** Pedersen commitment: SET order of group G */
+	public void setPedOrder(int pedOrder) {
+		this.pedOrder = pedOrder;
+	}
+	/** Pedersen commitment: GET size of generator set from G */
+	public int getPedGeneratorLength() {
+		return this.pedGenerator.length;
+	}
+	/** Pedersen commitment: GET generator set from G */
+	public byte[][] getPedGenerator() {
+		return pedGenerator;
+	}
+	/** Pedersen commitment: SET generator set from G */
+	public void setPedGenerator(byte[][] pedGenerator) {
+		this.pedGenerator = pedGenerator;
+	}
+	/** Pedersen commitment: GET generator in index from G */
+	public byte[] getPedGenerator(int index) {
+		return pedGenerator[index];
+	}
+	/** Pedersen commitment: SET generator in index from G */
+	public void setPedGenerator(byte[] pedGenerator, int index) {
+		this.pedGenerator[index] = pedGenerator;
 	}
 	
 }
