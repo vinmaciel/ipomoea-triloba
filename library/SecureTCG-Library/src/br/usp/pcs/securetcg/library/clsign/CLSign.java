@@ -3,6 +3,7 @@ package br.usp.pcs.securetcg.library.clsign;
 import java.math.BigInteger;
 import java.util.Calendar;
 
+import br.usp.pcs.securetcg.library.pedcom.PedPublicKey;
 import br.usp.pcs.securetcg.library.utils.Prime;
 
 /**
@@ -26,8 +27,8 @@ public class CLSign {
 	
 	
 	/**
-	 * Generate a pair of a public key (PK) and a private key (SK) as described in CLSign scheme. 
-	 * The public key is formed with Special RSA Modulus n = pq, and three random quadratic residues in n. 
+	 * Generates a pair of a public key (PK) and a private key (SK) as described in CLSign scheme. 
+	 * The public key is formed with Special RSA Modulus n = pq, and a set of random quadratic residues in n. 
 	 * The private key is the safe prime p. 
 	 * Both input keys can be <code>null</code>.
 	 * 
@@ -70,7 +71,7 @@ public class CLSign {
 	}
 
 	/**
-	 * Generate a pair of a public key (PK) and a private key (SK) as described in CLSign scheme with default size. 
+	 * Generates a pair of a public key (PK) and a private key (SK) as described in CLSign scheme with default size. 
 	 * See {@link CLSign#generateKeyPair(int, CLPublicKey, CLPrivateKey)} for more details.
 	 * 
 	 * @param pk public key to be generated.
@@ -82,19 +83,25 @@ public class CLSign {
 	}
 	
 	/**
-	 * Create a signature based on the message and a secret key.
+	 * Creates a signature based on the message and a secret key.<br/>
+	 * Signature is <code>(e, v, A)</code> where <code>A = (r<SUB><font size="1">i</font></SUB><SUP>m<SUB><font size="1">i</font></SUB></SUP>*s<SUP>v</SUP>*z )<SUP>1/e</SUP><SUB>i = 0..k</SUB></code>
+	 * for <code>k</code> messages, random <code>e</code> and <code>v</code>, and parameters <code>r</code>, <code>s</code> and <code>z</code>.
 	 * 
-	 * @param message to be signed.
+	 * @param messages to be signed.
 	 * @param messageSize length (in bits) of the message.
 	 * @param pk public key used to sign.
 	 * @param sk private key used to sign.
 	 * @param keySize of the RSA modulus.
-	 * @param signature signed hash from the message.
+	 * 
+	 * @return new {@link CLSignature} with the signed hash from the message.
 	 */
-	public static void sign(byte[][] messages, int messageSize, CLPublicKey pk, CLPrivateKey sk, int keySize, CLSignature signature) {
+	public static CLSignature sign(byte[][] messages, int messageSize, CLPublicKey pk, CLPrivateKey sk, int keySize) {
 		long init = Calendar.getInstance().getTimeInMillis();
 		
-		if(signature == null) signature = new CLSignature();
+		if(messages.length != pk.getRSize())
+			throw new IllegalArgumentException("Number of messages to sign different from number of generators");
+		
+		CLSignature signature = new CLSignature();
 		
 		BigInteger	n = new BigInteger(pk.getN()),
 					p = new BigInteger(sk.getP()),
@@ -117,11 +124,81 @@ public class CLSign {
 		
 		BigInteger	v = BigInteger.probablePrime(keySize + messageSize + SECURITY_PARAMETER, Prime.random);
 		
-		BigInteger numerator = s.modPow(v, n);
+		BigInteger rightMember = s.modPow(v, n).multiply(z).mod(n);
 		for(int i = 0; i < r.length; i++)
-			numerator = numerator.multiply(r[i].modPow(m[i], n)).mod(n);
+			rightMember = rightMember.multiply(r[i].modPow(m[i], n)).mod(n);
 		
-		BigInteger	rightMember = z.multiply(numerator.modInverse(n)).mod(n),
+		BigInteger	logP = Prime.getDiscreteLogarithm(e, rightMember, p),
+					logQ = Prime.getDiscreteLogarithm(e, rightMember, q),
+					a = Prime.getCRTResult( new BigInteger[]{logP, logQ}, new BigInteger[]{p, q} );
+		
+//		System.out.println("a^m * b^s * c=" + rightMember);
+		
+		signature.setA(a.toByteArray());
+		signature.setE(e.toByteArray());
+		signature.setV(v.toByteArray());
+		
+		System.out.println("Signed in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
+		
+		return signature;
+	}
+	
+	/**
+	 * Creates a signature based on the message and a secret key, with default key size.
+	 * See {@link CLSign#sign(byte[], int, CLPublicKey, CLPrivateKey, int, CLSignature)} for more details.
+	 * 
+	 * @param message to be signed.
+	 * @param messageSize length (in bits) of the message.
+	 * @param pk public key used to sign.
+	 * @param sk private key used to sign.
+	 * 
+	 * @return new {@link CLSignature} with the signed hash from the message.
+	 */
+	public static CLSignature sign(byte[][] message, int messageSize, CLPublicKey pk, CLPrivateKey sk) {
+		return CLSign.sign(message, messageSize, pk, sk, MODULUS_LENGTH);
+	}
+	
+	/**
+	 * Creates a blind signature based on a Pedersen commitment and a secret key.
+	 * The key from the commitment must have the same RSA modulus from the one used to sign. <br/>
+	 * Signature is <code>(e, v, A)</code> where <code>A = (C*h<SUP>v</SUP>*z )<SUP>1/e</SUP></code>
+	 * for commitment <code>C</code>, random <code>e</code> and <code>v</code>, and parameters <code>h</code> and <code>z</code>.<br/>
+	 * After signing, must substitute <code>v</code> by <code>v+r</code>, where <code>r</code> is the random parameter in the commitment.
+	 * 
+	 * @param commitment to be signed
+	 * @param ck key used to commit
+	 * @param messageSize length of the commitment()
+	 * @param pk public key used to sign
+	 * @param sk private key used to sign
+	 * @param keySize of the RSA modulus
+	 * 
+	 * @return new {@link CLSignature} with the signed hash from the commitment.
+	 * 
+	 * @see {@link PedCom}
+	 */
+	public static CLSignature signBlind(byte[] commitment, PedPublicKey ck, int messageSize, CLPublicKey pk, CLPrivateKey sk, int keySize) {
+		long init = Calendar.getInstance().getTimeInMillis();
+		
+		if(!(new BigInteger(ck.getN())).equals(new BigInteger(pk.getN())))
+			throw new IllegalArgumentException("Modulus from key used to commit different from the one used to sign");
+		
+		CLSignature signature = new CLSignature();
+		
+		BigInteger	n = new BigInteger(pk.getN()),
+					p = new BigInteger(sk.getP()),
+					q = n.divide(new BigInteger(sk.getP())),
+					z = new BigInteger(pk.getZ()),
+					b = new BigInteger(ck.getH()),
+					m = new BigInteger(commitment);
+		
+		BigInteger	e = BigInteger.TEN;
+		while(e.compareTo(Prime.BIGINTEGER_TWO.pow(messageSize + 1)) <= 0) {
+			e = Prime.getPrime(messageSize + 2);
+		}
+		
+		BigInteger	v = BigInteger.probablePrime(keySize + messageSize + SECURITY_PARAMETER, Prime.random);
+		
+		BigInteger	rightMember = b.modPow(v, n).multiply(m).mod(n).multiply(z).mod(n),
 					logP = Prime.getDiscreteLogarithm(e, rightMember, p),
 					logQ = Prime.getDiscreteLogarithm(e, rightMember, q),
 					a = Prime.getCRTResult( new BigInteger[]{logP, logQ}, new BigInteger[]{p, q} );
@@ -133,20 +210,8 @@ public class CLSign {
 		signature.setV(v.toByteArray());
 		
 		System.out.println("Signed in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
-	}
-	
-	/**
-	 * Create a signature based on the message and a secret key, with default key size.
-	 * See {@link CLSign#sign(byte[], int, CLPublicKey, CLPrivateKey, int, CLSignature)} for more details.
-	 * 
-	 * @param message to be signed.
-	 * @param messageSize length (in bits) of the message.
-	 * @param pk public key used to sign.
-	 * @param sk private key used to sign.
-	 * @param signature signed hash from the message.
-	 */
-	public static void sign(byte[][] message, int messageSize, CLPublicKey pk, CLPrivateKey sk, CLSignature signature) {
-		CLSign.sign(message, messageSize, pk, sk, MODULUS_LENGTH, signature);
+		
+		return signature;
 	}
 	
 	/**

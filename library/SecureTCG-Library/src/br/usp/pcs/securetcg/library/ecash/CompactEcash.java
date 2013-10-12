@@ -52,7 +52,35 @@ public class CompactEcash {
 		pku.setGu(par.getG().modPow(urand, par.getN()).toByteArray());
 	}
 	
-	public static boolean Withdraw() {
+	public static boolean Withdraw_UserSide() {
+		//TODO identifies itself to the bank (proving knowledge of its secret key(?)
+		
+		//TODO contribution to randomness
+		//selects s' and t from Zq
+		//commits A' = PedCom(sku, s', t, r)		(what is r?)
+		//sends A' to the bank
+		//awaits random r'
+		//sets s = s' + r'
+		//sets A = g<bold>^r' * A' = PedCom(sku, s'+r', t, r) = PedCom(sku, s, t, r)
+		
+		//TODO runs CL protocol(?)
+		//gets signature(sku, s, t)					(where is r?)
+		
+		//TODO gets wallet W = (sku, s, t, sig(sku, s, t), J)				(don't need J)
+		return false;
+	}
+	
+	public static boolean Withdraw_BankSide() {
+		//TODO awaits user identification
+		
+		//TODO contribution to randomness
+		//awaits commitment A' from user
+		//sends a random r' to the user
+		//sets A = g<bold>^r' * A' = PedCom(sku, s'+r', t, r) = PedCom(sku, s, t, r)
+		
+		//TODO runs CL protocol(?)
+		
+		//TODO debits
 		return false;
 	}
 	

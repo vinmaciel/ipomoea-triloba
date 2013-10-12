@@ -13,6 +13,7 @@ public class CLPrivateKey implements Serializable {
 	
 	public CLPrivateKey() {}
 	
+	/** Component of special RSA modulus */
 	private byte[] p;
 
 	public byte[] getP() {

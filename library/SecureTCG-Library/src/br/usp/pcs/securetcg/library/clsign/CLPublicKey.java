@@ -13,9 +13,13 @@ public class CLPublicKey implements Serializable {
 	
 	public CLPublicKey() {}
 	
+	/** Special RSA modulus */
 	private byte[] n;
+	/** Quadratic residues in n */
 	private byte[][] r;
+	/** Special quadratic residue in n */
 	private byte[] s;
+	/** Base quadratic residue in n */
 	private byte[] z;
 	
 	public byte[] getN() {

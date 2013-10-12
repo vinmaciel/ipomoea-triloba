@@ -11,8 +11,11 @@ import java.math.BigInteger;
  */
 public class CLSignature implements Serializable {
 
+	/** Signature */
 	private byte[] a;
+	/** Random discrete logarithm */
 	private byte[] e;
+	/** Random exponent */
 	private byte[] v;
 	
 	public byte[] getA() {
