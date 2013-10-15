@@ -1,6 +1,5 @@
 package br.usp.pcs.securetcg.library.ecash;
 
-import java.math.BigInteger;
 
 /**
  * Singleton to handle the global parameters of the system.
@@ -20,21 +19,20 @@ public final class SystemParameter {
 		return instance;
 	}
 	
-	/** Key size */
-	//TODO turn into final
-	private int k;
-	/** Bank chosen modulus */
-	private BigInteger n;
-	/** Generator of the commitment for user key generator */
-	//FIXME is G really global???
-	private BigInteger g;
 	
-	/* Pedersen commitment */
-	/** Pedersen commitment: Order of group G */
-	private int pedOrder;
-	/** Pedersen commitment: Generator set from G */
-	private byte[][] pedGenerator;
-
+	/** Security parameter */
+	//TODO must be final
+	private int k;
+	
+	/** Order of prime group G of generators */
+	private byte[] p;
+	
+	/** Generators of G */
+	private byte[][] g;
+	
+	/** Special generator of G */
+	private byte[] h;
+	
 	public int getK() {
 		return k;
 	}
@@ -42,47 +40,65 @@ public final class SystemParameter {
 		this.k = k;
 	}
 	
-	public BigInteger getN() {
-		return n;
+	public byte[] getP() {
+		byte[] p = new byte[this.p.length];
+		for(int i = 0; i < p.length; i++)
+			p[i] = this.p[i];
+		return p;
 	}
-	public void setN(BigInteger n) {
-		this.n = n;
+	public void setP(byte[] p) {
+		this.p = new byte[p.length];
+		for(int i = 0; i < this.p.length; i++)
+			this.p[i] = p[i];
 	}
 	
-	public BigInteger getG() {
+	public byte[][] getG() {
+		byte[][] g = new byte[this.g.length][];
+		for(int i = 0; i < g.length; i++) {
+			g[i] = new byte[this.g[i].length];
+			for(int j = 0; j < g[i].length; j++)
+				g[i][j] = this.g[i][j];
+		}
 		return g;
 	}
-	public void setG(BigInteger g) {
-		this.g = g;
+	public void setG(byte[][] g) {
+		this.g = new byte[g.length][];
+		for(int i = 0; i < this.g.length; i++) {
+			this.g[i] = new byte[g[i].length];
+			for(int j = 0; j < this.g[i].length; j++)
+				this.g[i][j] = g[i][j];
+		}
 	}
-
-	/** Pedersen commitment: GET order of group G */
-	public int getPedOrder() {
-		return pedOrder;
+	public byte[] getG(int index) {
+		byte[] g = new byte[this.g[index].length];
+		for(int i = 0; i < g.length; i++)
+			g[i] = this.g[index][i];
+		return g;
 	}
-	/** Pedersen commitment: SET order of group G */
-	public void setPedOrder(int pedOrder) {
-		this.pedOrder = pedOrder;
+	public void setG(byte[] g, int index) {
+		this.g[index] = new byte[g.length];
+		for(int i = 0; i < this.g[index].length; i++)
+			this.g[index][i] = g[i];
 	}
-	/** Pedersen commitment: GET size of generator set from G */
-	public int getPedGeneratorLength() {
-		return this.pedGenerator.length;
+	public int getGSize() {
+		return g.length;
 	}
-	/** Pedersen commitment: GET generator set from G */
-	public byte[][] getPedGenerator() {
-		return pedGenerator;
+	public void allocG(int length) {
+		this.g = new byte[length][];
 	}
-	/** Pedersen commitment: SET generator set from G */
-	public void setPedGenerator(byte[][] pedGenerator) {
-		this.pedGenerator = pedGenerator;
+	
+	public byte[] getH() {
+		byte[] h = new byte[this.h.length];
+		for(int i = 0; i < h.length; i++)
+			h[i] = this.h[i];
+		return h;
 	}
-	/** Pedersen commitment: GET generator in index from G */
-	public byte[] getPedGenerator(int index) {
-		return pedGenerator[index];
+	public void setH(byte[] h) {
+		this.h = new byte[h.length];
+		for(int i = 0; i < this.h.length; i++)
+			this.h[i] = h[i];
 	}
-	/** Pedersen commitment: SET generator in index from G */
-	public void setPedGenerator(byte[] pedGenerator, int index) {
-		this.pedGenerator[index] = pedGenerator;
-	}
+	
+	
 	
 }

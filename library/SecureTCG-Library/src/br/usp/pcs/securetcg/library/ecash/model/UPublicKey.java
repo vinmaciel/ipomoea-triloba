@@ -1,4 +1,4 @@
-package br.usp.pcs.securetcg.library.ecash.key;
+package br.usp.pcs.securetcg.library.ecash.model;
 
 import java.io.Serializable;
 
