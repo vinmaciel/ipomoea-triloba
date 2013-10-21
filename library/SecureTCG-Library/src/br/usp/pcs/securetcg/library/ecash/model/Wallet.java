@@ -7,14 +7,17 @@ public class Wallet implements Serializable {
 
 	public Wallet() {}
 	
+	/* Serial */
 	/** Mixed (user-bank) serial instance */
 	private byte[] s;
+	/** Fixed serial class */
+	private byte[] q;
+	
+	/*Parameters */
 	/** User anonymity component */
 	private byte[] t;
 	/** Random commitment value */
 	private byte[] x;
-	/** Fixed serial class */
-	private byte[] q;
 	/** Wallet size */
 	private byte[] j;
 	/** signature's A of the parameters */
@@ -35,6 +38,18 @@ public class Wallet implements Serializable {
 		this.s = new byte[s.length];
 		for(int i = 0; i < this.s.length; i++)
 			this.s[i] = s[i];
+	}
+	
+	public byte[] getQ() {
+		byte[] q = new byte[this.q.length];
+		for(int i = 0; i < q.length; i++)
+			q[i] = this.q[i];
+		return q;
+	}
+	public void setQ(byte[] q) {
+		this.q = new byte[q.length];
+		for(int i = 0; i < this.q.length; i++)
+			this.q[i] = q[i];
 	}
 	
 	public byte[] getT() {
@@ -59,18 +74,6 @@ public class Wallet implements Serializable {
 		this.x = new byte[x.length];
 		for(int i = 0; i < this.x.length; i++)
 			this.x[i] = x[i];
-	}
-	
-	public byte[] getQ() {
-		byte[] q = new byte[this.q.length];
-		for(int i = 0; i < q.length; i++)
-			q[i] = this.q[i];
-		return q;
-	}
-	public void setQ(byte[] q) {
-		this.q = new byte[q.length];
-		for(int i = 0; i < this.q.length; i++)
-			this.q[i] = q[i];
 	}
 	
 	public byte[] getJ() {

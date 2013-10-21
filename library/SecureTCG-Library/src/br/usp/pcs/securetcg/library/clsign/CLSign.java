@@ -243,12 +243,13 @@ public class CLSign {
 //		System.out.println("left=" + v.modPow(e, n));
 //		System.out.println("right=" + a.modPow(m, n).multiply(b.modPow(s, n)).multiply(c).mod(n));
 		
-		BigInteger result = a.modPow(e, n).multiply(s.modPow(v, n)).mod(n);
+		BigInteger	leftMember = a.modPow(e, n),
+					rightMember = s.modPow(v, n).multiply(z).mod(n);
 		for(int i = 0; i < r.length; i++)
-			result = result.multiply(r[i].modPow(m[i], n)).mod(n);
+			rightMember = rightMember.multiply(r[i].modPow(m[i], n)).mod(n);
 		
 		System.out.println("Verified in " + (Calendar.getInstance().getTimeInMillis() - init) + "ms.");
 		
-		return z.equals(result);
+		return leftMember.equals(rightMember);
 	}
 }
