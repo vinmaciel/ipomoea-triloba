@@ -14,7 +14,7 @@
     </global-forwards>
     
     <action-mappings>
-        <action path="/test" type="br.usp.pcs.securetcg.server.test.TestAction" name="testActionForm">
+        <action path="/test" type="br.usp.pcs.securetcg.server.test.TestAction" name="testActionForm" scope="request">
             <forward name="success" path="/test.jsp"/>
         </action>
     </action-mappings>

@@ -21,7 +21,7 @@
         
         <property name="hbm2dll.auto">create</property>
         
-        <mapping resource="test_class_one.hbm.xml"/>
-        <mapping resource="test_class_two.hbm.xml"/>
+        <mapping class="br.usp.pcs.securetcg.server.test.TestClass1" />
+        <mapping class="br.usp.pcs.securetcg.server.test.TestClass2" />
     </session-factory>
 </hibernate-configuration>
