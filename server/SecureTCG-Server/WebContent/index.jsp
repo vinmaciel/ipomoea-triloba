@@ -4,15 +4,14 @@
 <html>
 
 <head>
-	<meta charset="ISO-8859-1">
 	<title>Secure TCG</title>
 </head>
 
 <body>
 	Welcome to Secure TCG page. <br/>
 	<form action="test.do" method="post">
-	Description: <input type="text" name="message"> </br>
-	Id: <input type="text" name="searchId"> </br>
+	Description: <input type="text" name="message">
+	Id: <input type="text" name="searchId">
 	<input type="submit" value="GO!">
 	</form>
 </body>
