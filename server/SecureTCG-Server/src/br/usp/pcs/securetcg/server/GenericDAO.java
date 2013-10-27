@@ -1,5 +1,8 @@
 package br.usp.pcs.securetcg.server;
 
+import java.util.List;
+
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -9,6 +12,12 @@ import org.hibernate.service.ServiceRegistryBuilder;
 
 public class GenericDAO<T> {
 
+	private Class<T> entityClass;
+	
+	public GenericDAO(Class<T> entityClass) {
+		this.entityClass = entityClass;
+	}
+	
 	private static final SessionFactory sessionFactory = buildSessionFactory();
 	
 	private static SessionFactory buildSessionFactory() {
@@ -28,13 +37,14 @@ public class GenericDAO<T> {
 	}
 	
 	
-	public static <T> void add(T obj) {
+	public long add(T obj) {
 		Transaction transaction = null;
 		Session session = getSessionFactory().openSession();
+		long result = -1;
 		
 		try {
 			transaction = session.beginTransaction();
-			session.save(obj);
+			result = Long.parseLong(session.save(obj).toString());
 			transaction.commit();
 		}
 		catch(RuntimeException e) {
@@ -46,6 +56,34 @@ public class GenericDAO<T> {
 			session.flush();
 			session.close();
 		}
+		
+		return result;
+	}
+	
+	public T get(long id) {
+		Transaction transaction = null;
+		Session session = getSessionFactory().openSession();
+		T result = null;
+		
+		try {
+			transaction = session.beginTransaction();
+			Query query = session.createQuery("from " + entityClass.getSimpleName() + " as o where o.id = :id").setLong("id", id);
+			@SuppressWarnings("unchecked")
+			List<T> list = query.list();
+			if(list != null && !list.isEmpty())
+				result = list.get(0);
+		}
+		catch(RuntimeException e) {
+			if(transaction != null)
+				transaction.rollback();
+			e.printStackTrace();
+		}
+		finally {
+			session.flush();
+			session.close();
+		}
+		
+		return result;
 	}
 	
 }

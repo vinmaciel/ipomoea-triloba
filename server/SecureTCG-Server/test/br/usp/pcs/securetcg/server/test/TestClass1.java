@@ -1,20 +1,34 @@
 package br.usp.pcs.securetcg.server.test;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
 /**
  * Class to test hibernate utility
  * 
  * @author vinmaciel
  */
+@Entity()
+@Table(name="test_one")
 public class TestClass1 {
 
-	private int id;
+	@Id
+	@GeneratedValue(strategy=GenerationType.AUTO)
+	@Column(name="id")
+	private long id;
+	@Column(name="name")
 	private String name;
+	@Column(name="data")
 	private byte[] data;
 	
-	public int getId() {
+	public long getId() {
 		return id;
 	}
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 	
@@ -30,6 +44,11 @@ public class TestClass1 {
 	}
 	public void setData(byte[] data) {
 		this.data = data;
+	}
+	
+	@Override
+	public String toString() {
+		return "" + this.getId() + this.getName();
 	}
 	
 }
