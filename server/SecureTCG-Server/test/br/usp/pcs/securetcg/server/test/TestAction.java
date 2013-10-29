@@ -24,21 +24,39 @@ public class TestAction extends Action {
 		TestClass2DAO twoDAO = new TestClass2DAO();
 		
 		try{
-			TestClass1 one = new TestClass1();
-			one.setName(message);
-			one.setData(BigInteger.valueOf(Calendar.getInstance().getTimeInMillis()).toByteArray());
-			System.out.println("added one: " + oneDAO.add(one));
-			
-			one = oneDAO.get(taForm.getSearchId());
-			taForm.setMessage(new BigInteger(one.getData()).toString());
-			
-			if(id > 0) {
-				TestClass2 two = new TestClass2();
-				two.setDescription(message);
-				two.setTestClassOne(one);
+			if(message != null && !message.equals("")) {
+				TestClass1 one = new TestClass1();
+				one.setName(message);
+				one.setData(BigInteger.valueOf(Calendar.getInstance().getTimeInMillis()).toByteArray());
+				one.setId(oneDAO.add(one));
+				System.out.println("added one: " + one.getId());
 				
-				System.out.println("added two: " + twoDAO.add(two));
+				one = oneDAO.get(taForm.getSearchId());
+				
+				if(id > 0) {
+					TestClass2 two = new TestClass2();
+					two.setDescription(message);
+					two.setTestClassOne(one);
+					two.setId(twoDAO.add(two));
+					
+					System.out.println("added two: " + two.getId());
+					
+					one = oneDAO.get(one.getId());
+					one.setName(one.getName() + " " + two.getDescription());
+					oneDAO.update(one);
+					
+					System.out.println("updated one: " + one.getId());
+				}
 			}
+			else {
+				TestClass1 one = oneDAO.get(id);
+				if(one != null) {
+					oneDAO.delete(one);
+					System.out.println("deleted one: " + one.getId());
+				}
+			}
+			
+			taForm.setMessage(oneDAO.getAll().toString()); 
 		}
 		catch(Throwable t) {
 			taForm.setMessage(t.getMessage());

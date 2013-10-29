@@ -1,10 +1,15 @@
 package br.usp.pcs.securetcg.server.test;
 
+import java.util.List;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -24,7 +29,8 @@ public class TestClass1 {
 	private String name;
 	@Column(name="data")
 	private byte[] data;
-	
+	@OneToMany(cascade=CascadeType.ALL, mappedBy="testClassOne", fetch=FetchType.LAZY)
+	private List<TestClass2> twos;
 	public long getId() {
 		return id;
 	}
@@ -44,6 +50,13 @@ public class TestClass1 {
 	}
 	public void setData(byte[] data) {
 		this.data = data;
+	}
+	
+	public List<TestClass2> getTwos() {
+		return twos;
+	}
+	public void setTwos(List<TestClass2> twos) {
+		this.twos = twos;
 	}
 	
 	@Override
