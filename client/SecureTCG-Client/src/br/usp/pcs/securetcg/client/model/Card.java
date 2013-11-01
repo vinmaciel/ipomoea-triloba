@@ -2,7 +2,7 @@ package br.usp.pcs.securetcg.client.model;
 
 import java.io.Serializable;
 
-import br.usp.pcs.securetcg.interfaces.ICard;
+import br.usp.pcs.securetcg.library.interfaces.ICard;
 
 public class Card extends ICard implements Serializable {
 
