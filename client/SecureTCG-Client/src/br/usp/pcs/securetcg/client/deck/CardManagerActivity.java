@@ -113,7 +113,7 @@ public class CardManagerActivity extends Activity {
 	}
 	
 	public void getLayoutObjects() {
-		cardList = (ListView) findViewById(R.card.card_list);
+		cardList = (ListView) findViewById(R.id.card_manager_card_list);
 	}
 	
 	public void setLayoutObjects() {
@@ -149,9 +149,9 @@ public class CardManagerActivity extends Activity {
 				row = inflater.inflate(R.layout.card_row, parent, false);
 			}
 			
-			TextView name = (TextView) findViewById(R.card.name);
-			TextView description = (TextView) findViewById(R.card.description);
-			CheckBox check_selected = (CheckBox) findViewById(R.card.selected);
+			TextView name = (TextView) findViewById(R.id.card_row_name);
+			TextView description = (TextView) findViewById(R.id.card_row_description);
+			CheckBox check_selected = (CheckBox) findViewById(R.id.card_row_selected);
 
 			name.setText("" + cards.get(position));
 			description.setText("" + cards.get(position));

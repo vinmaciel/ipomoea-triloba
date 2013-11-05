@@ -5,7 +5,7 @@
     android:orientation="vertical" >
     
     <ListView 
-        android:id="@+card/card_list"
+        android:id="@+id/card_manager_card_list"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_gravity="top"

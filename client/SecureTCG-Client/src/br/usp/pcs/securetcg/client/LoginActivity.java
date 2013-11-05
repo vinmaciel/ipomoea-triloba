@@ -23,7 +23,7 @@ public class LoginActivity extends Activity {
 		// FIXME layout
 		setContentView(R.layout.login_activity);
 		
-		TextView progress = (TextView) findViewById(R.login.progress);
+		TextView progress = (TextView) findViewById(R.id.login_progress);
 		PrivateKey sk = null;
 		
 		try {

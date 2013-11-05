@@ -8,6 +8,7 @@ import android.widget.Button;
 import br.usp.pcs.securetcg.client.deck.CardManagerActivity;
 import br.usp.pcs.securetcg.client.deck.DeckManagerActivity;
 import br.usp.pcs.securetcg.client.market.MarketActivity;
+import br.usp.pcs.securetcg.client.trade.FriendManagerActivity;
 
 public class HomeActivity extends Activity {
 	
@@ -15,6 +16,7 @@ public class HomeActivity extends Activity {
 	private Button marketButton;
 	private Button decksButton;
 	private Button cardsButton;
+	private Button tradeButton;
 	
 	/** Life-cycle Methods **/
 	@Override
@@ -29,15 +31,17 @@ public class HomeActivity extends Activity {
 	
 	/** Layout Methods **/
 	private void getLayoutObjects() {
-		marketButton = (Button) findViewById(R.home.market_button);
-		decksButton = (Button) findViewById(R.home.decks_button);
-		cardsButton = (Button) findViewById(R.home.cards_button);
+		marketButton = (Button) findViewById(R.id.home_market_button);
+		decksButton = (Button) findViewById(R.id.home_decks_button);
+		cardsButton = (Button) findViewById(R.id.home_cards_button);
+		tradeButton = (Button) findViewById(R.id.home_trade_button);
 	}
 	
 	private void setLayoutObjects() {
 		marketButton.setOnClickListener(new OnClickMarket());
 		decksButton.setOnClickListener(new OnClickDeck());
 		cardsButton.setOnClickListener(new OnClickCards());
+		tradeButton.setOnClickListener(new OnClickTrade());
 	}
 	
 	/** OnClick Listeners **/
@@ -64,6 +68,15 @@ public class HomeActivity extends Activity {
 		@Override
 		public void onClick(View v) {
 			startActivity(new Intent(HomeActivity.this, CardManagerActivity.class));
+		}
+		
+	}
+	
+	private class OnClickTrade implements View.OnClickListener {
+
+		@Override
+		public void onClick(View v) {
+			startActivity(new Intent(HomeActivity.this, FriendManagerActivity.class));
 		}
 		
 	}

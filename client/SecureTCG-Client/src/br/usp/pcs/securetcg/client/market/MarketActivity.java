@@ -20,7 +20,7 @@ public class MarketActivity extends Activity {
 	}
 	
 	public void getLayoutObjects() {
-		webview = (WebView) findViewById(R.market.webview);
+		webview = (WebView) findViewById(R.id.market_webview);
 	}
 	
 	public void setLayoutObjects() {

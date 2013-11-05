@@ -18,19 +18,19 @@ import br.usp.pcs.securetcg.client.R;
 
 public class DeckManagerActivity extends Activity {
 	
-	/** UI Objects **/
+	/* UI Objects */
 	private ListView deckList;
 	
-	/** Menu Objects **/
+	/* Menu Objects */
 	private MenuItem createDeck;
 	private MenuItem updateDeck;
 	private MenuItem destroyDeck;
 	
-	/** List Objects **/
+	/* List Objects */
 	private List<Object> decks;
 	private int selected = -1;
 	
-	/** Life-cycle Methods **/
+	/* Life-cycle Methods */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -40,7 +40,7 @@ public class DeckManagerActivity extends Activity {
 		setLayoutObjects();
 	}
 	
-	/** Menu Methods **/
+	/* Menu Methods */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		createDeck = menu.add("New Deck");
@@ -68,9 +68,9 @@ public class DeckManagerActivity extends Activity {
 		return true;
 	}
 	
-	/** Layout Methods **/
+	/* Layout Methods */
 	private void getLayoutObjects() {
-		deckList = (ListView) findViewById(R.deck.deck_list);
+		deckList = (ListView) findViewById(R.id.deck_manager_deck_list);
 	}
 	
 	private void setLayoutObjects() {
@@ -78,7 +78,7 @@ public class DeckManagerActivity extends Activity {
 		deckList.setOnItemClickListener(new OnClickSelectDeck());
 	}
 	
-	/** List Methods **/
+	/* List Methods */
 	// TODO change from Object to Deck
 	private class DeckAdapter extends ArrayAdapter<Object> {
 		
@@ -95,8 +95,8 @@ public class DeckManagerActivity extends Activity {
 				row = inflater.inflate(R.layout.deck_row, parent, false);
 			}
 			
-			TextView name = (TextView) findViewById(R.deck.name);
-			TextView numberOfCards = (TextView) findViewById(R.deck.cards_size);
+			TextView name = (TextView) findViewById(R.id.deck_row_name);
+			TextView numberOfCards = (TextView) findViewById(R.id.deck_row_cards_size);
 
 			name.setText("" + decks.get(position));
 			numberOfCards.setText("" + decks.get(position));
@@ -105,7 +105,7 @@ public class DeckManagerActivity extends Activity {
 		}
 	}
 	
-	/** OnClick Listeners **/
+	/* OnClick Listeners */
 	private class OnClickSelectDeck implements AdapterView.OnItemClickListener {
 
 		@Override

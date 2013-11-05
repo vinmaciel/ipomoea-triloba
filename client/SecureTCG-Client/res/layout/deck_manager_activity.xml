@@ -5,7 +5,7 @@
     android:orientation="vertical" >
     
     <ListView 
-        android:id="@+deck/deck_list"
+        android:id="@+id/deck_manager_deck_list"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_gravity="top"

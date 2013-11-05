@@ -5,13 +5,13 @@
     android:orientation="vertical" >
     
     <TextView 
-        android:id="@+deck/name"
-        android:layout_width="wrap_content"
+        android:id="@+id/deck_row_name"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
     
     <TextView 
-        android:id="@+deck/cards_size"
-        android:layout_width="wrap_content"
+        android:id="@+id/deck_row_cards_size"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
 
 </LinearLayout>
