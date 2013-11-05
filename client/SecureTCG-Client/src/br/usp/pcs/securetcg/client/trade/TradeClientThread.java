@@ -4,22 +4,16 @@ import java.io.IOException;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
 
-public class TradeClientThread extends Thread {
+public class TradeClientThread extends TradeThread {
 
 	private BluetoothAdapter bluetoothAdapter;
-	private BluetoothSocket clientSocket;
-	
-	private Handler handler;
-	
-	private TradeCommunication comm;
 	
 	public TradeClientThread(BluetoothAdapter bluetoothAdapter, BluetoothDevice bluetoothDevice, Handler handler) throws IOException {
 		super();
 		this.bluetoothAdapter = bluetoothAdapter;
-		this.clientSocket = bluetoothDevice.createRfcommSocketToServiceRecord(Constants.TRADE_UUID);
+		this.socket = bluetoothDevice.createRfcommSocketToServiceRecord(Constants.TRADE_UUID);
 		this.handler = handler;
 	}
 	
@@ -28,11 +22,11 @@ public class TradeClientThread extends Thread {
 		bluetoothAdapter.cancelDiscovery();
 		
 		try {
-			clientSocket.connect();
+			socket.connect();
 		}
 		catch(IOException ioe) {
 			try {
-				clientSocket.close();
+				socket.close();
 			}
 			catch(IOException ioe2) { }
 			
@@ -41,7 +35,7 @@ public class TradeClientThread extends Thread {
 		}
 		
 		try {
-			comm = new TradeCommunication(clientSocket);
+			comm = new TradeCommunication(socket);
 		} catch (IOException e) {
 			handler.obtainMessage(Constants.TRADE_CONNECTION_MESSAGE, Constants.TRADE_SERVER_ERROR, 0, null).sendToTarget();
 			return;
@@ -52,6 +46,7 @@ public class TradeClientThread extends Thread {
 		if(comm != null) comm.listen(handler);
 	}
 	
+	@Override
 	public void send(byte[] message) {
 		try {
 			comm.speak(message);
@@ -62,9 +57,10 @@ public class TradeClientThread extends Thread {
 		handler.obtainMessage(Constants.TRADE_OUTPUT_MESSAGE, Constants.TRADE_SEND_OK, 0, null).sendToTarget();
 	}
 	
+	@Override
 	public void cancel() {
 		try {
-			clientSocket.close();
+			socket.close();
 		}
 		catch(IOException ioe) { }
 	}

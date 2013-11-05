@@ -31,7 +31,11 @@ public final class R {
         public static final int home_market_button=0x7f06000c;
         public static final int home_trade_button=0x7f06000f;
         public static final int login_progress=0x7f060010;
-        public static final int market_webview=0x7f060011;
+        public static final int market_webview=0x7f060015;
+        public static final int trade_center_device_text=0x7f060011;
+        public static final int trade_center_message_in=0x7f060014;
+        public static final int trade_center_message_out=0x7f060012;
+        public static final int trade_center_send_button=0x7f060013;
     }
     public static final class layout {
         public static final int card_manager_activity=0x7f030000;
@@ -42,7 +46,8 @@ public final class R {
         public static final int friend_row=0x7f030005;
         public static final int home_activity=0x7f030006;
         public static final int login_activity=0x7f030007;
-        public static final int web_browser=0x7f030008;
+        public static final int trade_center_activity=0x7f030008;
+        public static final int web_browser=0x7f030009;
     }
     public static final class string {
         public static final int app_name=0x7f040000;

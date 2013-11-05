@@ -22,4 +22,9 @@ public class Constants {
 	protected static final int TRADE_SEND_ERROR = -1;
 	
 	protected static final int TRADE_BUFFER = 1024;
+	
+	protected static final String TRADE_CONNECTED_DEVICE = "ConnectedDevice";
+	protected static final String TRADE_CONNECTION_TYPE = "ConnectionType";
+	protected static final String TRADE_CONNECTION_SERVER = "ConnectionServer";
+	protected static final String TRADE_CONNECTION_CLIENT = "ConnectionClient";
 }

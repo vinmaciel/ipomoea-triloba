@@ -4,17 +4,11 @@ import java.io.IOException;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
-import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
 
-public class TradeServerThread extends Thread {
+public class TradeServerThread extends TradeThread {
 
 	private final BluetoothServerSocket bluetoothServerSocket;
-	private BluetoothSocket serverSocket = null;
-	
-	private Handler handler;
-	
-	private TradeCommunication comm;
 	
 	public TradeServerThread(BluetoothAdapter bluetoothAdapter, Handler handler) throws IOException {
 		super();
@@ -27,16 +21,16 @@ public class TradeServerThread extends Thread {
 		// Yes, I really want my socket
 		while(true) {
 			try {
-				serverSocket = bluetoothServerSocket.accept();
+				socket = bluetoothServerSocket.accept();
 			}
 			catch(IOException ioe) {
 				handler.obtainMessage(Constants.TRADE_CONNECTION_MESSAGE, Constants.TRADE_SERVER_ERROR, 0, null).sendToTarget();
 				break;
 			}
 			
-			if(serverSocket != null) {
+			if(socket != null) {
 				try {
-					comm = new TradeCommunication(serverSocket);
+					comm = new TradeCommunication(socket);
 				} catch (IOException e) {
 					handler.obtainMessage(Constants.TRADE_CONNECTION_MESSAGE, Constants.TRADE_SERVER_ERROR, 0, null).sendToTarget();
 					break;
@@ -50,6 +44,7 @@ public class TradeServerThread extends Thread {
 		if(comm != null) comm.listen(handler);
 	}
 	
+	@Override
 	public void send(byte[] message) {
 		try {
 			comm.speak(message);
@@ -62,7 +57,7 @@ public class TradeServerThread extends Thread {
 	
 	public void cancel() {
 		try {
-			if(serverSocket != null) serverSocket.close();
+			if(socket != null) socket.close();
 			bluetoothServerSocket.close();
 		} catch (IOException ioe) { }
 	}

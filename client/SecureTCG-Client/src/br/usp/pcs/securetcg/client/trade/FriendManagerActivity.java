@@ -41,7 +41,6 @@ public class FriendManagerActivity extends Activity {
 	private static final int ENABLE_BLUETOOTH = 1;
 	private static final int DISCOVERABLE_BLUETOOTH = 2;
 	private boolean discovering = false;
-	private Thread friendConnection = null;
 	
 	
 	/* Life-cycle Methods */
@@ -70,18 +69,6 @@ public class FriendManagerActivity extends Activity {
 		if(discovering) bluetoothAdapter.cancelDiscovery();
 		unregisterReceiver(bluetoothReceiver);
 		super.onPause();
-	}
-	
-	@Override
-	public void onDestroy() {
-		if(friendConnection != null) {
-			if(friendConnection instanceof TradeServerThread)
-				((TradeServerThread) friendConnection).cancel();
-			else
-				((TradeClientThread) friendConnection).cancel();
-			friendConnection.interrupt();
-		}
-		super.onDestroy();
 	}
 	
 	/* Layout Methods */
@@ -176,23 +163,34 @@ public class FriendManagerActivity extends Activity {
 			
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				if(friends.get(position).getBondState() == BluetoothDevice.BOND_BONDED) {
-					new AlertDialog.Builder(parent.getContext())
-						.setTitle("Bluetooth connection")
-						.setMessage("Start connection with " + friends.get(position).getName() + "?")
-						.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-							
-							@Override
-							public void onClick(DialogInterface dialog, int which) {
-								// TODO start connection
-							}
-						})
-						.setNegativeButton("No", null)
-						.show();
-				}
-				else {
-					//TODO bonding
-				}
+				final BluetoothDevice friendConnected = friends.get(position);
+				final Context context = parent.getContext();
+				
+				new AlertDialog.Builder(parent.getContext())
+					.setTitle("Bluetooth connection")
+					.setMessage("Connect with " + friends.get(position).getName() + "as...")
+					.setPositiveButton("Server", new DialogInterface.OnClickListener() {
+						
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							Intent intent = new Intent(context, TradeCenterActivity.class);
+							intent.putExtra(Constants.TRADE_CONNECTED_DEVICE, friendConnected);
+							intent.putExtra(Constants.TRADE_CONNECTION_TYPE, Constants.TRADE_CONNECTION_SERVER);
+							startActivity(intent);
+						}
+					})
+					.setNeutralButton("Client", new DialogInterface.OnClickListener() {
+						
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							Intent intent = new Intent(context, TradeCenterActivity.class);
+							intent.putExtra(Constants.TRADE_CONNECTED_DEVICE, friendConnected);
+							intent.putExtra(Constants.TRADE_CONNECTION_TYPE, Constants.TRADE_CONNECTION_CLIENT);
+							startActivity(intent);
+						}
+					})
+					.setNegativeButton("Cancel", null)
+					.show();
 			}
 		};
 	}
