@@ -20,7 +20,6 @@ public class LoginActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		// FIXME layout
 		setContentView(R.layout.login_activity);
 		
 		TextView progress = (TextView) findViewById(R.id.login_progress);

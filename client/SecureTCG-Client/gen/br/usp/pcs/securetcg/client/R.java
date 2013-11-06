@@ -53,24 +53,25 @@ public final class R {
         public static final int app_name=0x7f040000;
         /**  Trade 
          */
-        public static final int bluetooth_start_discovery=0x7f04000b;
-        public static final int bluetooth_start_find_devices=0x7f04000d;
-        public static final int bluetooth_stop_discovery=0x7f04000c;
-        public static final int bluetooth_stop_find_devices=0x7f04000e;
+        public static final int bluetooth_start_discovery=0x7f04000c;
+        public static final int bluetooth_start_find_devices=0x7f04000e;
+        public static final int bluetooth_stop_discovery=0x7f04000d;
+        public static final int bluetooth_stop_find_devices=0x7f04000f;
         public static final int card_info_title=0x7f040005;
         public static final int card_manager_title=0x7f040004;
-        public static final int cards_button=0x7f040009;
+        public static final int cards_button=0x7f04000a;
         public static final int deck_manager_title=0x7f040003;
-        public static final int decks_button=0x7f040008;
+        public static final int decks_button=0x7f040009;
         public static final int friend_manager_title=0x7f040006;
         /**  Title 
          */
         public static final int home_title=0x7f040001;
         /**  Main 
          */
-        public static final int market_button=0x7f040007;
+        public static final int market_button=0x7f040008;
         public static final int market_title=0x7f040002;
-        public static final int trade_button=0x7f04000a;
+        public static final int trade_button=0x7f04000b;
+        public static final int trade_center_title=0x7f040007;
     }
     public static final class style {
         /** 

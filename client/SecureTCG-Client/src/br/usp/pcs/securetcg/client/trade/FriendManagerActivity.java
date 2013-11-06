@@ -58,6 +58,8 @@ public class FriendManagerActivity extends Activity {
 	@Override
 	public void onResume() {
 		super.onResume();
+		updateDeviceDiscovery();
+		
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(BluetoothDevice.ACTION_FOUND);
 		filter.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
@@ -84,6 +86,17 @@ public class FriendManagerActivity extends Activity {
 		friendListAdapter = new FriendAdapter();
 		friendList.setAdapter(friendListAdapter);
 		friendList.setOnItemClickListener(onClickConnectBluetooth());
+	}
+	
+	private void updateDeviceDiscovery() {
+		if(discovering) {
+			findBluetoothDeviceButton.setText(R.string.bluetooth_start_find_devices);
+			bluetoothAdapter.cancelDiscovery();
+		}
+		else {
+			findBluetoothDeviceButton.setText(R.string.bluetooth_stop_find_devices);
+			bluetoothAdapter.startDiscovery();
+		}
 	}
 	
 	/* List Methods */
@@ -133,14 +146,7 @@ public class FriendManagerActivity extends Activity {
 			
 			@Override
 			public void onClick(View v) {
-				if(discovering) {
-					findBluetoothDeviceButton.setText(R.string.bluetooth_start_find_devices);
-					bluetoothAdapter.cancelDiscovery();
-				}
-				else {
-					findBluetoothDeviceButton.setText(R.string.bluetooth_stop_find_devices);
-					bluetoothAdapter.startDiscovery();
-				}
+				updateDeviceDiscovery();
 				discovering = !discovering;
 			}
 		};

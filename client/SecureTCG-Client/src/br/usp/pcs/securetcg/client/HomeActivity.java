@@ -22,7 +22,6 @@ public class HomeActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		// FIXME layout
 		setContentView(R.layout.home_activity);
 		
 		getLayoutObjects();

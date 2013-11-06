@@ -49,13 +49,18 @@
             android:screenOrientation="portrait" />
         
         <activity 
+            android:name=".deck.CardInfoActivity"
+            android:label="@string/card_info_title"
+            android:screenOrientation="portrait" />
+        
+        <activity 
             android:name=".trade.FriendManagerActivity"
             android:label="@string/friend_manager_title"
             android:screenOrientation="portrait" />
         
         <activity 
-            android:name=".deck.CardInfoActivity"
-            android:label="@string/card_info_title"
+            android:name=".trade.TradeCenterActivity"
+            android:label="@string/trade_center_title"
             android:screenOrientation="portrait" />
         
     </application>

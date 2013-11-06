@@ -16,8 +16,10 @@
     
     <Button
         android:id="@+id/trade_center_send_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Send" />
     
     <TextView
         android:id="@+id/trade_center_message_in"

@@ -9,6 +9,7 @@
     <string name="card_manager_title">Card Manager</string>
     <string name="card_info_title">Card Info</string>
     <string name="friend_manager_title">Friend Manager</string>
+    <string name="trade_center_title">Trade Center</string>
     
     <!-- Main -->
     <string name="market_button">Market</string>
