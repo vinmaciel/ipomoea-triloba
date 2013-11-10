@@ -54,11 +54,15 @@ public class TradeClientThread extends TradeThread {
 			handler.obtainMessage(Constants.TRADE_OUTPUT_MESSAGE, Constants.TRADE_SEND_ERROR, 0, null).sendToTarget();
 			return;
 		}
-		handler.obtainMessage(Constants.TRADE_OUTPUT_MESSAGE, Constants.TRADE_SEND_OK, 0, null).sendToTarget();
+		handler.obtainMessage(Constants.TRADE_OUTPUT_MESSAGE, Constants.TRADE_SEND_OK, 0, message).sendToTarget();
 	}
 	
 	@Override
 	public void cancel() {
+		try {
+			if(comm != null) comm.speak(new byte[] {(byte) 0xFF});
+		}
+		catch(IOException ioe) { }
 		try {
 			socket.close();
 		}

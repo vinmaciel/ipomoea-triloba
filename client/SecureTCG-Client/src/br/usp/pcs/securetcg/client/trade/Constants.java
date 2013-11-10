@@ -21,6 +21,9 @@ public class Constants {
 	protected static final int TRADE_SEND_OK = 1;
 	protected static final int TRADE_SEND_ERROR = -1;
 	
+	protected static final int TRADE_RECEIVE_MESSAGE = 1;
+	protected static final int TRADE_RECEIVE_CLOSE = 2;
+	
 	protected static final int TRADE_BUFFER = 1024;
 	
 	protected static final String TRADE_CONNECTED_DEVICE = "ConnectedDevice";

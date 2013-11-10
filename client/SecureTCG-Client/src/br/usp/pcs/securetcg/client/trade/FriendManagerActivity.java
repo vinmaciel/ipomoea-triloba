@@ -13,6 +13,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -172,9 +173,11 @@ public class FriendManagerActivity extends Activity {
 				final BluetoothDevice friendConnected = friends.get(position);
 				final Context context = parent.getContext();
 				
+				Log.d("Bluetooth", "device: " + friendConnected.getName() + " " + friendConnected.getAddress());
+				
 				new AlertDialog.Builder(parent.getContext())
 					.setTitle("Bluetooth connection")
-					.setMessage("Connect with " + friends.get(position).getName() + "as...")
+					.setMessage("Connect with " + friends.get(position).getName() + " as...")
 					.setPositiveButton("Server", new DialogInterface.OnClickListener() {
 						
 						@Override

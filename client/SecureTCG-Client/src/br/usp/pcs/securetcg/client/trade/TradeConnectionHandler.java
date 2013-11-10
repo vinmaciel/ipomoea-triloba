@@ -17,6 +17,10 @@ public abstract class TradeConnectionHandler extends Handler {
 	abstract void onSendError();
 	abstract void onSendOK(String message);
 	
+	abstract void onReceive(String message);
+	
+	abstract void onConnectionClosed();
+	
 	@Override
 	public void handleMessage(Message msg) {
 		switch(msg.what) {
@@ -45,6 +49,17 @@ public abstract class TradeConnectionHandler extends Handler {
 				break;
 			case Constants.TRADE_SEND_OK:
 				onSendOK(new String((byte[]) msg.obj));
+				break;
+			}
+			break;
+			
+		case Constants.TRADE_INPUT_MESSAGE:
+			switch(msg.arg1) {
+			case Constants.TRADE_RECEIVE_MESSAGE:
+				onReceive(new String((byte[]) msg.obj));
+				break;
+			case Constants.TRADE_RECEIVE_CLOSE:
+				onConnectionClosed();
 				break;
 			}
 			break;

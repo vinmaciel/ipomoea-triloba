@@ -24,10 +24,13 @@ public class TradeCommunication {
 		while(true) {
 			try {
 				bytes = in.read(buffer);
-				handler.obtainMessage(Constants.TRADE_INPUT_MESSAGE, bytes, 0, buffer).sendToTarget();
+				if(bytes == 1 && buffer[0] == -1)
+					handler.obtainMessage(Constants.TRADE_INPUT_MESSAGE, Constants.TRADE_RECEIVE_CLOSE, bytes, null).sendToTarget();
+				else
+					handler.obtainMessage(Constants.TRADE_INPUT_MESSAGE, Constants.TRADE_RECEIVE_MESSAGE, bytes, buffer).sendToTarget();
 			}
 			catch(IOException ioe) {
-				break;
+				return;
 			}
 		}
 	}

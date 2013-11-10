@@ -34,7 +34,7 @@ public class TradeServerThread extends TradeThread {
 					comm = new TradeCommunication(socket);
 				} catch (IOException e) {
 					handler.obtainMessage(Constants.TRADE_CONNECTION_MESSAGE, Constants.TRADE_SERVER_ERROR, 0, null).sendToTarget();
-					break;
+					return;
 				}
 				
 				handler.obtainMessage(Constants.TRADE_CONNECTION_MESSAGE, Constants.TRADE_SERVER_OK, 0, null).sendToTarget();
@@ -58,7 +58,12 @@ public class TradeServerThread extends TradeThread {
 	
 	public void cancel() {
 		try {
+			if(comm != null) comm.speak(new byte[] {(byte) 0xFF});
+		} catch (IOException ioe) { }
+		try {
 			if(socket != null) socket.close();
+		} catch (IOException ioe) { }
+		try {
 			bluetoothServerSocket.close();
 		} catch (IOException ioe) { }
 	}

@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -94,6 +95,8 @@ public class TradeCenterActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				String message = messageOut.getText().toString();
+				messageOut.setText("");
+				Log.d("Bluetooth", "MESSAGE: " + message);
 				friendConnection.send(message.getBytes());
 			}
 		};
@@ -102,6 +105,7 @@ public class TradeCenterActivity extends Activity {
 	private static class CustomTradeConnectionHandler extends TradeConnectionHandler {
 
 		WeakReference<TradeCenterActivity> activity;
+		int countError = 0;
 		
 		CustomTradeConnectionHandler(TradeCenterActivity activity) {
 			super();
@@ -137,11 +141,25 @@ public class TradeCenterActivity extends Activity {
 		@Override
 		void onSendError() {
 			Toast.makeText(activity.get(), "Message not sent", Toast.LENGTH_SHORT).show();
+			if(countError++ == 5) {
+				this.onConnectionClosed();
+			}
 		}
 
 		@Override
 		void onSendOK(String message) {
 			activity.get().messageIn.setText(activity.get().messageIn.getText() + "\nMe: " + message);
+		}
+
+		@Override
+		void onReceive(String message) {
+			activity.get().messageIn.setText(activity.get().messageIn.getText() + "\nYou: " + message);
+		}
+
+		@Override
+		void onConnectionClosed() {
+			Toast.makeText(activity.get(), "Connection closed", Toast.LENGTH_SHORT).show();
+			activity.get().finish();
 		}
 	}
 }
