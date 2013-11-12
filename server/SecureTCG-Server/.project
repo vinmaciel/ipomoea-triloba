@@ -3,6 +3,7 @@
 	<name>SecureTCG-Server</name>
 	<comment></comment>
 	<projects>
+		<project>SecureTCG-Library</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

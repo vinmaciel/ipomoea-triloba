@@ -1,4 +1,4 @@
-package br.usp.pcs.securetcg.server;
+package br.usp.pcs.securetcg.server.model;
 
 import java.util.List;
 
