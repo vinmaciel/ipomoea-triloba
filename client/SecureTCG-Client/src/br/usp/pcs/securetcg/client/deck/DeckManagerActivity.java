@@ -15,6 +15,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import br.usp.pcs.securetcg.client.R;
+import br.usp.pcs.securetcg.client.database.DeckDAO;
+import br.usp.pcs.securetcg.client.model.Deck;
 
 public class DeckManagerActivity extends Activity {
 	
@@ -27,8 +29,12 @@ public class DeckManagerActivity extends Activity {
 	private MenuItem destroyDeck;
 	
 	/* List Objects */
-	private List<Object> decks;
+	private List<Deck> decks;
+	private DeckAdapter deckAdapter;
 	private int selected = -1;
+	
+	/* Data access objects */
+	private DeckDAO deckDAO = new DeckDAO(this);
 	
 	/* Life-cycle Methods */
 	@Override
@@ -38,6 +44,13 @@ public class DeckManagerActivity extends Activity {
 		
 		getLayoutObjects();
 		setLayoutObjects();
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		decks = deckDAO.getAll();
+		deckAdapter.notifyDataSetChanged();
 	}
 	
 	/* Menu Methods */
@@ -74,13 +87,13 @@ public class DeckManagerActivity extends Activity {
 	}
 	
 	private void setLayoutObjects() {
-		deckList.setAdapter(new DeckAdapter());
+		deckAdapter = new DeckAdapter();
+		deckList.setAdapter(deckAdapter);
 		deckList.setOnItemClickListener(new OnClickSelectDeck());
 	}
 	
 	/* List Methods */
-	// TODO change from Object to Deck
-	private class DeckAdapter extends ArrayAdapter<Object> {
+	private class DeckAdapter extends ArrayAdapter<Deck> {
 		
 		LayoutInflater inflater = getLayoutInflater();
 		
@@ -96,10 +109,12 @@ public class DeckManagerActivity extends Activity {
 			}
 			
 			TextView name = (TextView) findViewById(R.id.deck_row_name);
+			TextView description = (TextView) findViewById(R.id.deck_row_description);
 			TextView numberOfCards = (TextView) findViewById(R.id.deck_row_cards_size);
 
-			name.setText("" + decks.get(position));
-			numberOfCards.setText("" + decks.get(position));
+			name.setText("" + decks.get(position).getName());
+			description.setText("" + decks.get(position).getDescription());
+			numberOfCards.setText("" + decks.get(position).getCardsSize());
 			
 			return row;
 		}

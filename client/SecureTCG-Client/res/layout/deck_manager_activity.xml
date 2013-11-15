@@ -10,7 +10,7 @@
         android:layout_height="fill_parent"
         android:layout_gravity="top"
         android:background="@android:color/transparent"
-        android:choiceMode="multipleChoice"
+        android:choiceMode="singleChoice"
         android:cacheColorHint="@android:color/transparent" />
 
 </LinearLayout>

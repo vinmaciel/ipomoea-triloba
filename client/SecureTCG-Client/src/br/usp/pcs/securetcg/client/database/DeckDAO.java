@@ -7,12 +7,17 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import br.usp.pcs.securetcg.client.model.Card;
 import br.usp.pcs.securetcg.client.model.Deck;
 
 public class DeckDAO extends DatabaseHandler {
 
+	Context context;
+	
 	public DeckDAO(Context context) {
 		super(context);
+		this.context = context;
 	}
 	
 	public void add(Deck deck) {
@@ -21,6 +26,7 @@ public class DeckDAO extends DatabaseHandler {
 		ContentValues values = new ContentValues();
 		values.put(DECK_ID, deck.getId());
 		values.put(DECK_NAME, deck.getName());
+		values.put(DECK_DESCRIPTION, deck.getDescription());
 		
 		db.insert(TABLE_DECK, null, values);
 		
@@ -30,18 +36,34 @@ public class DeckDAO extends DatabaseHandler {
 	public Deck get(long id) {
 		SQLiteDatabase db = this.getReadableDatabase();
 		
-		Cursor cursor = db.query(	TABLE_DECK, 
-									new String[] {DECK_ID, DECK_NAME}, 
+		Cursor deckCursor = db.query(	TABLE_DECK, 
+									new String[] {DECK_ID, DECK_NAME, DECK_DESCRIPTION}, 
 									DECK_ID + "=?", 
 									new String[] {String.valueOf(id)}, 
 									null, null, null, null	);
 		
-		if(cursor != null) cursor.moveToFirst();
+		if(deckCursor != null) deckCursor.moveToFirst();
 		
 		Deck deck = new Deck();
-		deck.setId(cursor.getLong(0));
-		deck.setName(cursor.getString(1));
-		//TODO Add cards to deck
+		deck.setId(deckCursor.getLong(0));
+		deck.setName(deckCursor.getString(1));
+		deck.setDescription(deckCursor.getString(2));
+		
+		Cursor cardsCursor = db.query(	TABLE_DECK_CARD, 
+									new String[] {DECK_CARD_ID_DECK, DECK_CARD_ID_CARD}, 
+									DECK_ID + "=?", 
+									new String[] {String.valueOf(id)}, 
+									null, null, null, null	);
+		
+		List<Card> cards = new ArrayList<Card>();
+		if(cardsCursor != null && cardsCursor.moveToFirst()) {
+			do{
+				CardDAO cardDAO = new CardDAO(context);
+				Card card = cardDAO.get(cardsCursor.getLong(1));
+				cards.add(card);
+			} while(cardsCursor.moveToNext());
+		}
+		deck.setCards(cards);
 		
 		db.close();
 		
@@ -52,7 +74,7 @@ public class DeckDAO extends DatabaseHandler {
 		SQLiteDatabase db = this.getReadableDatabase();
 		
 		Cursor cursor = db.query(	TABLE_DECK, 
-									new String[] {DECK_ID, DECK_NAME}, 
+									new String[] {DECK_ID, DECK_NAME, DECK_DESCRIPTION}, 
 									null, null, null, null, null, null	);
 		
 		List<Deck> decks = new ArrayList<Deck>();
@@ -62,7 +84,23 @@ public class DeckDAO extends DatabaseHandler {
 				Deck deck = new Deck();
 				deck.setId(cursor.getLong(0));
 				deck.setName(cursor.getString(1));
-				//TODO Add cards to deck
+				deck.setDescription(cursor.getString(2));
+				
+				Cursor cardsCursor = db.query(	TABLE_DECK_CARD, 
+											new String[] {DECK_CARD_ID_DECK, DECK_CARD_ID_CARD}, 
+											DECK_ID + "=?", 
+											new String[] {String.valueOf(deck.getId())}, 
+											null, null, null, null	);
+				
+				List<Card> cards = new ArrayList<Card>();
+				if(cardsCursor != null && cardsCursor.moveToFirst()) {
+					do{
+						CardDAO cardDAO = new CardDAO(context);
+						Card card = cardDAO.get(cardsCursor.getLong(1));
+						cards.add(card);
+					} while(cardsCursor.moveToNext());
+				}
+				deck.setCards(cards);
 				
 				decks.add(deck);
 			} while(cursor.moveToNext());
@@ -79,6 +117,7 @@ public class DeckDAO extends DatabaseHandler {
 		ContentValues values = new ContentValues();
 		values.put(DECK_ID, deck.getId());
 		values.put(DECK_NAME, deck.getName());
+		values.put(DECK_DESCRIPTION, deck.getDescription());
 		
 		db.update(TABLE_DECK, values, DECK_ID + "=?", new String[] {String.valueOf(deck.getId())});
 		
@@ -89,7 +128,41 @@ public class DeckDAO extends DatabaseHandler {
 		SQLiteDatabase db = this.getWritableDatabase();
 		
 		db.delete(TABLE_DECK, DECK_ID + "=?", new String[] {String.valueOf(deck.getId())});
-		//TODO Remove references to cards
+		db.delete(TABLE_DECK_CARD, DECK_ID + "=?", new String[] {String.valueOf(deck.getId())});
+		
+		db.close();
+	}
+	
+	public void addCardToDeck(Deck deck, Card card) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		
+		CardDAO cardDAO = new CardDAO(context);
+		if(this.get(deck.getId()) == null)
+			throw new SQLiteException("Cannot find deck");
+		if(cardDAO.get(card.getId()) == null)
+			throw new SQLiteException("Cannot find card");
+		
+		ContentValues values = new ContentValues();
+		values.put(DECK_CARD_ID_CARD, card.getId());
+		values.put(DECK_CARD_ID_DECK, deck.getId());
+		
+		db.insert(TABLE_DECK_CARD, null, values);
+		
+		db.close();
+		
+		deck.getCards().add(card);
+	}
+	
+	public void removeCardFromDeck(Deck deck, Card card) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		
+		CardDAO cardDAO = new CardDAO(context);
+		if(this.get(deck.getId()) == null)
+			throw new SQLiteException("Cannot find deck");
+		if(cardDAO.get(card.getId()) == null)
+			throw new SQLiteException("Cannot find card");
+		
+		db.delete(TABLE_DECK_CARD, DECK_ID + "=? AND " + CARD_ID + "=?", new String[] {String.valueOf(deck.getId()), String.valueOf(card.getId())});
 		
 		db.close();
 	}

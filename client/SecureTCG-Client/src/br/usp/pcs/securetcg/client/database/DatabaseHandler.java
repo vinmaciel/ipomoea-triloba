@@ -20,12 +20,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	//Table TABLE_DECK columns
 	protected static final String DECK_ID = "id";
 	protected static final String DECK_NAME = "name";
+	protected static final String DECK_DESCRIPTION = "description";
 	
 	//Table TABLE_CARD columns
 	protected static final String CARD_ID = "id";
 	protected static final String CARD_NAME = "name";
 	protected static final String CARD_DESCRIPTION = "description";
-	protected static final String CARD_SIGNATURE = "signature";
+	protected static final String CARD_BITMAP_PATH = "bitmap_path";
+	protected static final String CARD_SERIAL = "serial";
+	protected static final String CARD_PROPERTIES = "properties";
+	protected static final String CARD_CLASS = "class";
 	
 	//Table TABLE_DECK_CARD columns
 	protected static final String DECK_CARD_ID_CARD = "id_card";
@@ -41,11 +45,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 									CARD_ID + " INTEGER PRIMARY KEY," +
 									CARD_NAME + " TEXT," +
 									CARD_DESCRIPTION + "TEXT," +
-									CARD_SIGNATURE + " BLOB" +
+									CARD_BITMAP_PATH + " TEXT," +
+									CARD_SERIAL + " BLOB," +
+									CARD_PROPERTIES + " BLOB," +
+									CARD_CLASS + " INTEGER" +
 									")";
 		String CREATE_DECK_TABLE =	"CREATE TABLE " + TABLE_DECK + "(" +
 									DECK_ID + " INTEGER PRIMARY KEY," +
-									DECK_NAME + " TEXT" +
+									DECK_NAME + " TEXT," +
+									DECK_DESCRIPTION + " TEXT" +
 									")";
 		String CREATE_DECK_CARD_TABLE =	"CREATE TABLE " + TABLE_DECK_CARD + "(" +
 										DECK_CARD_ID_CARD + " INTEGER," +

@@ -9,25 +9,29 @@ package br.usp.pcs.securetcg.library.interfaces;
  */
 public abstract class ICard {
 	
-	private long id;
+	private byte[] serial;
+	private byte[] properties;
+	private long classID;
 	
-	private byte[] signature;
-	
-	
-	public long getId() {
-		return id;
+	public byte[] getSerial() {
+		return serial;
+	}
+	public void setSerial(byte[] serial) {
+		this.serial = serial;
 	}
 	
-	public void setId(long id) {
-		this.id = id;
+	public byte[] getProperties() {
+		return properties;
+	}
+	public void setProperties(byte[] properties) {
+		this.properties = properties;
 	}
 	
-	public byte[] getSignature() {
-		return signature;
+	public long getClassID() {
+		return classID;
 	}
-	
-	public void setSignature(byte[] signature) {
-		this.signature = signature;
+	public void setClassID(long classID) {
+		this.classID = classID;
 	}
 	
 }
