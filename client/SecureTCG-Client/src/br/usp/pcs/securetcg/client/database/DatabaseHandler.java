@@ -42,7 +42,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		String CREATE_CARD_TABLE =	"CREATE TABLE " + TABLE_CARD + "(" +
-									CARD_ID + " INTEGER PRIMARY KEY," +
+									CARD_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
 									CARD_NAME + " TEXT," +
 									CARD_DESCRIPTION + "TEXT," +
 									CARD_BITMAP_PATH + " TEXT," +
@@ -51,7 +51,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 									CARD_CLASS + " INTEGER" +
 									")";
 		String CREATE_DECK_TABLE =	"CREATE TABLE " + TABLE_DECK + "(" +
-									DECK_ID + " INTEGER PRIMARY KEY," +
+									DECK_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
 									DECK_NAME + " TEXT," +
 									DECK_DESCRIPTION + " TEXT" +
 									")";

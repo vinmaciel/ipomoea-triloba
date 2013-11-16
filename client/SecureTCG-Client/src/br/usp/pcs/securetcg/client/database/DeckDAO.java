@@ -1,6 +1,6 @@
 package br.usp.pcs.securetcg.client.database;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import android.content.ContentValues;
@@ -24,11 +24,11 @@ public class DeckDAO extends DatabaseHandler {
 		SQLiteDatabase db = this.getWritableDatabase();
 		
 		ContentValues values = new ContentValues();
-		values.put(DECK_ID, deck.getId());
 		values.put(DECK_NAME, deck.getName());
 		values.put(DECK_DESCRIPTION, deck.getDescription());
 		
-		db.insert(TABLE_DECK, null, values);
+		deck.setId( db.insert(TABLE_DECK, null, values) );
+		deck.setCards(new LinkedList<Card>());
 		
 		db.close();
 	}
@@ -51,11 +51,11 @@ public class DeckDAO extends DatabaseHandler {
 		
 		Cursor cardsCursor = db.query(	TABLE_DECK_CARD, 
 									new String[] {DECK_CARD_ID_DECK, DECK_CARD_ID_CARD}, 
-									DECK_ID + "=?", 
+									DECK_CARD_ID_DECK + "=?", 
 									new String[] {String.valueOf(id)}, 
 									null, null, null, null	);
 		
-		List<Card> cards = new ArrayList<Card>();
+		List<Card> cards = new LinkedList<Card>();
 		if(cardsCursor != null && cardsCursor.moveToFirst()) {
 			do{
 				CardDAO cardDAO = new CardDAO(context);
@@ -77,7 +77,7 @@ public class DeckDAO extends DatabaseHandler {
 									new String[] {DECK_ID, DECK_NAME, DECK_DESCRIPTION}, 
 									null, null, null, null, null, null	);
 		
-		List<Deck> decks = new ArrayList<Deck>();
+		List<Deck> decks = new LinkedList<Deck>();
 		
 		if(cursor != null && cursor.moveToFirst()) {
 			do{
@@ -88,11 +88,11 @@ public class DeckDAO extends DatabaseHandler {
 				
 				Cursor cardsCursor = db.query(	TABLE_DECK_CARD, 
 											new String[] {DECK_CARD_ID_DECK, DECK_CARD_ID_CARD}, 
-											DECK_ID + "=?", 
+											DECK_CARD_ID_DECK + "=?", 
 											new String[] {String.valueOf(deck.getId())}, 
 											null, null, null, null	);
 				
-				List<Card> cards = new ArrayList<Card>();
+				List<Card> cards = new LinkedList<Card>();
 				if(cardsCursor != null && cardsCursor.moveToFirst()) {
 					do{
 						CardDAO cardDAO = new CardDAO(context);
@@ -128,12 +128,12 @@ public class DeckDAO extends DatabaseHandler {
 		SQLiteDatabase db = this.getWritableDatabase();
 		
 		db.delete(TABLE_DECK, DECK_ID + "=?", new String[] {String.valueOf(deck.getId())});
-		db.delete(TABLE_DECK_CARD, DECK_ID + "=?", new String[] {String.valueOf(deck.getId())});
+		db.delete(TABLE_DECK_CARD, DECK_CARD_ID_DECK + "=?", new String[] {String.valueOf(deck.getId())});
 		
 		db.close();
 	}
 	
-	public void addCardToDeck(Deck deck, Card card) {
+	public void addCard(Deck deck, Card card) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		
 		CardDAO cardDAO = new CardDAO(context);
@@ -150,10 +150,11 @@ public class DeckDAO extends DatabaseHandler {
 		
 		db.close();
 		
-		deck.getCards().add(card);
+		if(!deck.getCards().contains(card))
+			deck.getCards().add(card);
 	}
 	
-	public void removeCardFromDeck(Deck deck, Card card) {
+	public void removeCard(Deck deck, Card card) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		
 		CardDAO cardDAO = new CardDAO(context);
@@ -162,8 +163,11 @@ public class DeckDAO extends DatabaseHandler {
 		if(cardDAO.get(card.getId()) == null)
 			throw new SQLiteException("Cannot find card");
 		
-		db.delete(TABLE_DECK_CARD, DECK_ID + "=? AND " + CARD_ID + "=?", new String[] {String.valueOf(deck.getId()), String.valueOf(card.getId())});
+		db.delete(TABLE_DECK_CARD, DECK_CARD_ID_DECK + "=? AND " + DECK_CARD_ID_CARD + "=?", new String[] {String.valueOf(deck.getId()), String.valueOf(card.getId())});
 		
 		db.close();
+		
+		if(deck.getCards().contains(card))
+			deck.getCards().remove(card);
 	}
 }

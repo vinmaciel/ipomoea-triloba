@@ -6,6 +6,9 @@ import java.util.ListIterator;
 
 public class Deck implements Serializable {
 
+	private static final long serialVersionUID = 3619538977583658174L;
+
+
 	public Deck() { };
 	
 	

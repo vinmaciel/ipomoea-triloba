@@ -1,6 +1,6 @@
 package br.usp.pcs.securetcg.client.database;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import android.content.ContentValues;
@@ -19,7 +19,6 @@ public class CardDAO extends DatabaseHandler {
 		SQLiteDatabase db = this.getWritableDatabase();
 		
 		ContentValues values = new ContentValues();
-		values.put(CARD_ID, card.getId());
 		values.put(CARD_NAME, card.getName());
 		values.put(CARD_DESCRIPTION, card.getDescription());
 		values.put(CARD_BITMAP_PATH, card.getBitmapPath());
@@ -27,7 +26,7 @@ public class CardDAO extends DatabaseHandler {
 		values.put(CARD_PROPERTIES, card.getProperties());
 		values.put(CARD_CLASS, card.getClassID());
 		
-		db.insert(TABLE_CARD, null, values);
+		card.setId( db.insert(TABLE_CARD, null, values) );
 		
 		db.close();
 	}
@@ -64,7 +63,7 @@ public class CardDAO extends DatabaseHandler {
 								new String[] {CARD_ID, CARD_NAME, CARD_DESCRIPTION, CARD_BITMAP_PATH, CARD_SERIAL, CARD_PROPERTIES, CARD_CLASS}, 
 								null, null, null, null, null, null	);
 		
-		List<Card> cards = new ArrayList<Card>();
+		List<Card> cards = new LinkedList<Card>();
 		
 		if(cursor != null && cursor.moveToFirst()) {
 			do{

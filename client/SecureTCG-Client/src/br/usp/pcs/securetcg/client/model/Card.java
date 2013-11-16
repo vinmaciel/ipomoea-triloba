@@ -2,9 +2,10 @@ package br.usp.pcs.securetcg.client.model;
 
 import java.io.Serializable;
 
-import br.usp.pcs.securetcg.library.interfaces.ICard;
+public class Card implements Serializable {
 
-public class Card extends ICard implements Serializable {
+	private static final long serialVersionUID = 8781132184531968399L;
+
 
 	public Card() { };
 	
@@ -13,6 +14,10 @@ public class Card extends ICard implements Serializable {
 	private String name;
 	private String description;
 	private String bitmapPath;
+	
+	private byte[] serial;
+	private byte[] properties;
+	private long classID;
 	
 	
 	public long getId() {
@@ -41,6 +46,28 @@ public class Card extends ICard implements Serializable {
 	}
 	public void setBitmapPath(String bitmapPath) {
 		this.bitmapPath = bitmapPath;
+	}
+
+	
+	public byte[] getSerial() {
+		return serial;
+	}
+	public void setSerial(byte[] serial) {
+		this.serial = serial;
+	}
+	
+	public byte[] getProperties() {
+		return properties;
+	}
+	public void setProperties(byte[] properties) {
+		this.properties = properties;
+	}
+	
+	public long getClassID() {
+		return classID;
+	}
+	public void setClassID(long classID) {
+		this.classID = classID;
 	}
 
 

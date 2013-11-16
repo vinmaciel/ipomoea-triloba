@@ -2,8 +2,12 @@ package br.usp.pcs.securetcg.client.deck;
 
 import java.util.List;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,6 +26,7 @@ public class DeckManagerActivity extends Activity {
 	
 	/* UI Objects */
 	private ListView deckList;
+	private NewDeckFragment createDeckFragment;
 	
 	/* Menu Objects */
 	private MenuItem createDeck;
@@ -33,14 +38,13 @@ public class DeckManagerActivity extends Activity {
 	private DeckAdapter deckAdapter;
 	private int selected = -1;
 	
-	/* Data access objects */
-	private DeckDAO deckDAO = new DeckDAO(this);
-	
 	/* Life-cycle Methods */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.deck_manager_activity);
+		
+		decks = new DeckDAO(this).getAll();
 		
 		getLayoutObjects();
 		setLayoutObjects();
@@ -49,7 +53,6 @@ public class DeckManagerActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		decks = deckDAO.getAll();
 		deckAdapter.notifyDataSetChanged();
 	}
 	
@@ -108,13 +111,14 @@ public class DeckManagerActivity extends Activity {
 				row = inflater.inflate(R.layout.deck_row, parent, false);
 			}
 			
-			TextView name = (TextView) findViewById(R.id.deck_row_name);
-			TextView description = (TextView) findViewById(R.id.deck_row_description);
-			TextView numberOfCards = (TextView) findViewById(R.id.deck_row_cards_size);
-
-			name.setText("" + decks.get(position).getName());
-			description.setText("" + decks.get(position).getDescription());
-			numberOfCards.setText("" + decks.get(position).getCardsSize());
+			TextView name = (TextView) row.findViewById(R.id.deck_row_name);
+			TextView description = (TextView) row.findViewById(R.id.deck_row_description);
+			TextView numberOfCards = (TextView) row.findViewById(R.id.deck_row_cards_size);
+			
+			Deck deck = decks.get(position);
+			name.setText("" + deck.getName());
+			description.setText("" + deck.getDescription());
+			numberOfCards.setText("" + deck.getCardsSize());
 			
 			return row;
 		}
@@ -133,9 +137,16 @@ public class DeckManagerActivity extends Activity {
 	
 	private class OnClickCreateDeck implements MenuItem.OnMenuItemClickListener {
 
+		@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 		@Override
 		public boolean onMenuItemClick(MenuItem item) {
 			// TODO create new deck on list and database
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+				FragmentManager manager = getFragmentManager();
+				FragmentTransaction transaction = manager.beginTransaction();
+				createDeckFragment = new NewDeckFragment();
+				transaction.add(R.id.deck_manager_activity, createDeckFragment).commit();
+			}
 			return false;
 		}
 		
@@ -164,4 +175,31 @@ public class DeckManagerActivity extends Activity {
 		}
 		
 	}
+	
+	/* Fragment interface */
+	protected NewDeckFragment.NewDeckInterface newDeckListener = new NewDeckFragment.NewDeckInterface() {
+
+		@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+		@Override
+		public void submitCreation(String name, String description) {
+			Deck deck = new Deck();
+			deck.setName(name);
+			deck.setDescription(description);
+			new DeckDAO(getApplicationContext()).add(deck);
+			decks.add(deck);
+			deckAdapter.notifyDataSetChanged();
+			
+			FragmentManager manager = getFragmentManager();
+			FragmentTransaction transaction = manager.beginTransaction();
+			transaction.remove(createDeckFragment).commit();
+		}
+
+		@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+		@Override
+		public void cancelCreation() {
+			FragmentManager manager = getFragmentManager();
+			FragmentTransaction transaction = manager.beginTransaction();
+			transaction.remove(createDeckFragment).commit();
+		}
+	};
 }

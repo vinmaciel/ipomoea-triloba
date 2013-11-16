@@ -22,5 +22,12 @@
     <string name="bluetooth_stop_discovery">Discovery ready</string>
     <string name="bluetooth_start_find_devices">Start finding devices</string>
     <string name="bluetooth_stop_find_devices">Stop finding devices</string>
+    
+    <!-- Deck -->
+    <string name="deck_manager_new">New Deck</string>
+    <string name="deck_manager_name">Name</string>
+    <string name="deck_manager_description">Description</string>
+    <string name="deck_manager_create">Create</string>
+    <string name="deck_manager_cancel">Cancel</string>
 
 </resources>

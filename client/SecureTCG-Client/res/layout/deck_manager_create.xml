@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:background="#FFFFFF" >
+    
+    <TextView 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:gravity="center"
+        android:text="@string/deck_manager_new"/>
+    
+    <EditText 
+        android:id="@+id/deck_manager_create_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:hint="@string/deck_manager_name" />
+    
+    <EditText 
+        android:id="@+id/deck_manager_create_description"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:gravity="start"
+        android:hint="@string/deck_manager_description" />
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+        
+        <Button 
+            android:id="@+id/deck_manager_create_submit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:text="@string/deck_manager_create" />
+        
+        <Button 
+            android:id="@+id/deck_manager_create_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:text="@string/deck_manager_cancel" />
+        
+    </LinearLayout>
+
+</LinearLayout>
