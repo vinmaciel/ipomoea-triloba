@@ -8,25 +8,41 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import br.usp.pcs.securetcg.client.model.Card;
+import br.usp.pcs.securetcg.client.model.CardClass;
 
 public class CardDAO extends DatabaseHandler {
 
+	Context context;
+	
 	public CardDAO(Context context) {
 		super(context);
+		this.context = context;
 	}
 	
 	public void add(Card card) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		
-		ContentValues values = new ContentValues();
-		values.put(CARD_NAME, card.getName());
-		values.put(CARD_DESCRIPTION, card.getDescription());
-		values.put(CARD_BITMAP_PATH, card.getBitmapPath());
-		values.put(CARD_SERIAL, card.getSerial());
-		values.put(CARD_PROPERTIES, card.getProperties());
-		values.put(CARD_CLASS, card.getClassID());
-		
-		card.setId( db.insert(TABLE_CARD, null, values) );
+		db.beginTransaction();
+		try {
+			long classID = card.getClassID();
+			
+			CardClassDAO cardClassDAO = new CardClassDAO(context);
+			if(cardClassDAO.get(classID) == null) {
+				cardClassDAO.add(card.getCardClass());
+			}
+			
+			ContentValues values = new ContentValues();
+			values.put(CARD_SERIAL, card.getSerial());
+			values.put(CARD_PROPERTIES, card.getProperties());
+			values.put(CARD_ID_CLASS, card.getClassID());
+			
+			card.setId( db.insert(TABLE_CARD, null, values) );
+			
+			db.setTransactionSuccessful();
+		}
+		finally {
+			db.endTransaction();
+		}
 		
 		db.close();
 	}
@@ -34,8 +50,13 @@ public class CardDAO extends DatabaseHandler {
 	public Card get(long id) { 
 		SQLiteDatabase db = this.getReadableDatabase();
 		
-		Cursor cursor = db.query(	TABLE_CARD, 
-								new String[] {CARD_ID, CARD_NAME, CARD_DESCRIPTION, CARD_BITMAP_PATH, CARD_SERIAL, CARD_PROPERTIES, CARD_CLASS}, 
+		Cursor cursor = db.query(	TABLE_CARD + " INNER JOIN " + TABLE_CLASS + 
+								" ON " + TABLE_CARD + "." + CARD_ID_CLASS + "=" + TABLE_CLASS + "." + CLASS_ID, 
+								new String[] {
+									TABLE_CARD + "." + CARD_ID, TABLE_CARD + "." + CARD_SERIAL, TABLE_CARD + "." + CARD_PROPERTIES,
+									TABLE_CLASS + "." + CLASS_ID, TABLE_CLASS + "." + CLASS_NAME, 
+									TABLE_CLASS + "." + CLASS_DESCRIPTION, TABLE_CLASS + "." + CLASS_BITMAP_PATH
+								}, 
 								CARD_ID + "=?", 
 								new String[] {String.valueOf(id)}, 
 								null, null, null, null	);
@@ -44,12 +65,16 @@ public class CardDAO extends DatabaseHandler {
 		
 		Card card = new Card();
 		card.setId(cursor.getLong(0));
-		card.setName(cursor.getString(1));
-		card.setDescription(cursor.getString(2));
-		card.setBitmapPath(cursor.getString(3));
-		card.setSerial(cursor.getBlob(4));
-		card.setProperties(cursor.getBlob(5));
-		card.setClassID(cursor.getLong(6));
+		card.setSerial(cursor.getBlob(1));
+		card.setProperties(cursor.getBlob(2));
+		
+		CardClass cardClass = new CardClass();
+		cardClass.setId(cursor.getLong(3));
+		cardClass.setName(cursor.getString(4));
+		cardClass.setDescription(cursor.getString(5));
+		cardClass.setBitmapPath(cursor.getString(6));
+		
+		card.setCardClass(cardClass);
 		
 		db.close();
 		
@@ -59,22 +84,32 @@ public class CardDAO extends DatabaseHandler {
 	public List<Card> getAll() {
 		SQLiteDatabase db = this.getReadableDatabase();
 		
-		Cursor cursor = db.query(	TABLE_CARD, 
-								new String[] {CARD_ID, CARD_NAME, CARD_DESCRIPTION, CARD_BITMAP_PATH, CARD_SERIAL, CARD_PROPERTIES, CARD_CLASS}, 
+		Cursor cursor = db.query(	TABLE_CARD + " INNER JOIN " + TABLE_CLASS + 
+								" ON " + TABLE_CARD + "." + CARD_ID_CLASS + "=" + TABLE_CLASS + "." + CLASS_ID, 
+								new String[] {
+									TABLE_CARD + "." + CARD_ID, TABLE_CARD + "." + CARD_SERIAL, TABLE_CARD + "." + CARD_PROPERTIES,
+									TABLE_CLASS + "." + CLASS_ID, TABLE_CLASS + "." + CLASS_NAME, 
+									TABLE_CLASS + "." + CLASS_DESCRIPTION, TABLE_CLASS + "." + CLASS_BITMAP_PATH
+								},  
 								null, null, null, null, null, null	);
 		
 		List<Card> cards = new LinkedList<Card>();
 		
 		if(cursor != null && cursor.moveToFirst()) {
 			do{
+				
 				Card card = new Card();
 				card.setId(cursor.getLong(0));
-				card.setName(cursor.getString(1));
-				card.setDescription(cursor.getString(2));
-				card.setBitmapPath(cursor.getString(3));
-				card.setSerial(cursor.getBlob(4));
-				card.setProperties(cursor.getBlob(5));
-				card.setClassID(cursor.getLong(6));
+				card.setSerial(cursor.getBlob(1));
+				card.setProperties(cursor.getBlob(2));
+				
+				CardClass cardClass = new CardClass();
+				cardClass.setId(cursor.getLong(3));
+				cardClass.setName(cursor.getString(4));
+				cardClass.setDescription(cursor.getString(5));
+				cardClass.setBitmapPath(cursor.getString(6));
+				
+				card.setCardClass(cardClass);
 				
 				cards.add(card);
 			} while(cursor.moveToNext());
@@ -86,25 +121,35 @@ public class CardDAO extends DatabaseHandler {
 	public void update(Card card) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		
-		ContentValues values = new ContentValues();
-		values.put(CARD_ID, card.getId());
-		values.put(CARD_NAME, card.getName());
-		values.put(CARD_DESCRIPTION, card.getDescription());
-		values.put(CARD_BITMAP_PATH, card.getBitmapPath());
-		values.put(CARD_SERIAL, card.getSerial());
-		values.put(CARD_PROPERTIES, card.getProperties());
-		values.put(CARD_CLASS, card.getClassID());
-		
-		db.update(TABLE_CARD, values, CARD_ID + "=?" , new String[] {String.valueOf(card.getId())});
-		
-		db.close();
+		db.beginTransaction();
+		try {
+			long classID = card.getClassID();
+			
+			CardClassDAO cardClassDAO = new CardClassDAO(context);
+			if(cardClassDAO.get(classID) == null) {
+				cardClassDAO.add(card.getCardClass());
+			}
+			
+			ContentValues values = new ContentValues();
+			values.put(CARD_ID, card.getId());
+			values.put(CARD_SERIAL, card.getSerial());
+			values.put(CARD_PROPERTIES, card.getProperties());
+			values.put(CARD_ID_CLASS, card.getClassID());
+
+			db.update(TABLE_CARD, values, CARD_ID + "=?" , new String[] {String.valueOf(card.getId())});
+			
+			db.setTransactionSuccessful();
+		}
+		finally {
+			db.endTransaction();
+		}
 	}
 	
 	public void delete(Card card) {
 		SQLiteDatabase db = this.getWritableDatabase();
-		
-		db.delete(TABLE_CARD, CARD_ID + "=?", new String[] {String.valueOf(card.getId())});
+
 		db.delete(TABLE_DECK_CARD, CARD_ID + "=?", new String[] {String.valueOf(card.getId())});
+		db.delete(TABLE_CARD, CARD_ID + "=?", new String[] {String.valueOf(card.getId())});
 		
 		db.close();
 	}

@@ -127,8 +127,8 @@ public class DeckDAO extends DatabaseHandler {
 	public void delete(Deck deck) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		
-		db.delete(TABLE_DECK, DECK_ID + "=?", new String[] {String.valueOf(deck.getId())});
 		db.delete(TABLE_DECK_CARD, DECK_CARD_ID_DECK + "=?", new String[] {String.valueOf(deck.getId())});
+		db.delete(TABLE_DECK, DECK_ID + "=?", new String[] {String.valueOf(deck.getId())});
 		
 		db.close();
 	}

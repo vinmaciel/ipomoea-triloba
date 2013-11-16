@@ -11,13 +11,10 @@ public class Card implements Serializable {
 	
 	
 	private long id;
-	private String name;
-	private String description;
-	private String bitmapPath;
+	private CardClass cardClass;
 	
 	private byte[] serial;
 	private byte[] properties;
-	private long classID;
 	
 	
 	public long getId() {
@@ -28,26 +25,26 @@ public class Card implements Serializable {
 	}
 
 	public String getName() {
-		return name;
+		return this.cardClass.getName();
 	}
 	public void setName(String name) {
-		this.name = name;
+		this.cardClass.setName(name);
 	}
 
 	public String getDescription() {
-		return description;
+		return this.cardClass.getDescription();
 	}
 	public void setDescription(String description) {
-		this.description = description;
+		this.cardClass.setDescription(description);
 	}
 
 	public String getBitmapPath() {
-		return bitmapPath;
+		return this.cardClass.getBitmapPath();
 	}
 	public void setBitmapPath(String bitmapPath) {
-		this.bitmapPath = bitmapPath;
+		this.cardClass.setBitmapPath(bitmapPath);
 	}
-
+	
 	
 	public byte[] getSerial() {
 		return serial;
@@ -64,13 +61,20 @@ public class Card implements Serializable {
 	}
 	
 	public long getClassID() {
-		return classID;
+		return cardClass.getId();
 	}
 	public void setClassID(long classID) {
-		this.classID = classID;
+		this.cardClass.setId(classID);
 	}
-
-
+	
+	public CardClass getCardClass() {
+		return this.cardClass;
+	}
+	public void setCardClass(CardClass cardClass) {
+		this.cardClass = cardClass;
+	}
+	
+	
 	@Override
 	public String toString() {
 		return	"Card with id=" + this.getId() + " name=" + this.getName() +

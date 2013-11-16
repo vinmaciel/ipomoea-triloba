@@ -13,7 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import br.usp.pcs.securetcg.client.R;
@@ -149,15 +150,15 @@ public class CardManagerActivity extends Activity {
 				row = inflater.inflate(R.layout.card_row, parent, false);
 			}
 			
-			TextView name = (TextView) findViewById(R.id.card_row_name);
-			TextView description = (TextView) findViewById(R.id.card_row_description);
-			CheckBox check_selected = (CheckBox) findViewById(R.id.card_row_selected);
-
+			LinearLayout background = (LinearLayout) row.findViewById(R.id.card_row_background);
+			TextView name = (TextView) row.findViewById(R.id.card_row_name);
+			TextView description = (TextView) row.findViewById(R.id.card_row_description);
+			ImageView thumbnail = (ImageView) row.findViewById(R.id.card_row_thumbnail);
+			
 			name.setText("" + cards.get(position));
 			description.setText("" + cards.get(position));
-			
-			if(selected[position]) check_selected.setChecked(true);
-			else check_selected.setChecked(false);
+			//TODO set image to thumbnail
+			background.setBackgroundColor(selected[position] ? getResources().getColor(R.color.list_selected) : getResources().getColor(R.color.transparent));
 			
 			return row;
 		}

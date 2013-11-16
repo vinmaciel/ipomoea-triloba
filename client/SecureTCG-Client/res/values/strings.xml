@@ -29,5 +29,8 @@
     <string name="deck_manager_description">Description</string>
     <string name="deck_manager_create">Create</string>
     <string name="deck_manager_cancel">Cancel</string>
+    
+    <!-- Card -->
+    <string name="card_manager_thumbnail_description">Card preview</string>
 
 </resources>

@@ -125,7 +125,7 @@ public class DeckManagerActivity extends Activity {
 			name.setText("" + deck.getName());
 			description.setText("" + deck.getDescription());
 			numberOfCards.setText("" + deck.getCardsSize());
-			background.setBackgroundColor(position == selected ? 0x3F0738FF : 0x00FFFFFF);
+			background.setBackgroundColor(position == selected ? getResources().getColor(R.color.list_selected) : getResources().getColor(R.color.transparent));
 			
 			return row;
 		}
