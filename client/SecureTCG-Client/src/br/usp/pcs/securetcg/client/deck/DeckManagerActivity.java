@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import br.usp.pcs.securetcg.client.R;
@@ -39,7 +40,7 @@ public class DeckManagerActivity extends Activity {
 	/* List Objects */
 	private List<Deck> decks;
 	private DeckAdapter deckAdapter;
-	private int selected = -1;
+	private int selected;
 	
 	/* Life-cycle Methods */
 	@Override
@@ -48,6 +49,7 @@ public class DeckManagerActivity extends Activity {
 		setContentView(R.layout.deck_manager_activity);
 		
 		decks = new DeckDAO(this).getAll();
+		selected = -1;
 		
 		getLayoutObjects();
 		setLayoutObjects();
@@ -114,6 +116,7 @@ public class DeckManagerActivity extends Activity {
 				row = inflater.inflate(R.layout.deck_row, parent, false);
 			}
 			
+			LinearLayout background = (LinearLayout) row.findViewById(R.id.deck_row_background);
 			TextView name = (TextView) row.findViewById(R.id.deck_row_name);
 			TextView description = (TextView) row.findViewById(R.id.deck_row_description);
 			TextView numberOfCards = (TextView) row.findViewById(R.id.deck_row_cards_size);
@@ -122,6 +125,7 @@ public class DeckManagerActivity extends Activity {
 			name.setText("" + deck.getName());
 			description.setText("" + deck.getDescription());
 			numberOfCards.setText("" + deck.getCardsSize());
+			background.setBackgroundColor(position == selected ? 0x3F0738FF : 0x00FFFFFF);
 			
 			return row;
 		}
@@ -130,10 +134,15 @@ public class DeckManagerActivity extends Activity {
 	/* OnClick Listeners */
 	private class OnClickSelectDeck implements AdapterView.OnItemClickListener {
 
+		@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 		@Override
 		public void onItemClick(AdapterView<?> parent, View child, int position, long id) {
 			if(position == selected) selected = -1;
 			else selected = position;
+			deckAdapter.notifyDataSetChanged();
+			
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+				invalidateOptionsMenu();
 		}
 		
 	}
