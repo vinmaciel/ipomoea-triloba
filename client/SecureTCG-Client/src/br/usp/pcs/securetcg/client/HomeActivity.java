@@ -66,7 +66,9 @@ public class HomeActivity extends Activity {
 
 		@Override
 		public void onClick(View v) {
-			startActivity(new Intent(HomeActivity.this, CardManagerActivity.class));
+			Intent cardsIntent = new Intent(HomeActivity.this, CardManagerActivity.class);
+			cardsIntent.putExtra(br.usp.pcs.securetcg.client.deck.Constants.DECK_SOURCE, br.usp.pcs.securetcg.client.deck.Constants.DECK_ALL);
+			startActivity(cardsIntent);
 		}
 		
 	}

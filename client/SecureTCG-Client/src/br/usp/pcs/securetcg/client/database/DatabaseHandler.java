@@ -63,7 +63,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 										"FOREIGN KEY(" + DECK_CARD_ID_CARD + ") REFERENCES " + TABLE_CARD + "(" + CARD_ID + ")," +
 										"FOREIGN KEY(" + DECK_CARD_ID_DECK + ") REFERENCES " + TABLE_DECK + "(" + DECK_ID + ")" +
 										")";
-		String CREATE_CLASS_TABLE =	"CREATE TABLE" + TABLE_CLASS + "(" +
+		String CREATE_CLASS_TABLE =	"CREATE TABLE " + TABLE_CLASS + "(" +
 									CLASS_ID + " INTEGER PRIMARY KEY," +
 									CLASS_NAME + " TEXT," +
 									CLASS_DESCRIPTION + " TEXT," +

@@ -152,7 +152,6 @@ public class DeckManagerActivity extends Activity {
 		@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 		@Override
 		public boolean onMenuItemClick(MenuItem item) {
-			// TODO create new deck on list and database
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
 				FragmentManager manager = getFragmentManager();
 				FragmentTransaction transaction = manager.beginTransaction();

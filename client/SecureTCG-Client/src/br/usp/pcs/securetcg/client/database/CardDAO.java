@@ -115,7 +115,7 @@ public class CardDAO extends DatabaseHandler {
 			} while(cursor.moveToNext());
 		}
 		
-		return null;
+		return cards;
 	}
 	
 	public void update(Card card) {
