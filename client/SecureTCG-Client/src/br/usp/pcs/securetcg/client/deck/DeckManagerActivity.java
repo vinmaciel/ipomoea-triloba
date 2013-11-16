@@ -4,8 +4,11 @@ import java.util.List;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -170,10 +173,28 @@ public class DeckManagerActivity extends Activity {
 
 		@Override
 		public boolean onMenuItemClick(MenuItem item) {
-			// TODO remove deck from list and database
+			confirmDelete();
 			return false;
 		}
 		
+	}
+	
+	private void confirmDelete() {
+		final Context context = this;
+		new AlertDialog.Builder(this)
+			.setTitle("Delete deck " + decks.get(selected).getName() + "?")
+			.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						Deck deck = decks.remove(selected);
+						new DeckDAO(context).delete(deck);
+						selected = -1;
+						deckAdapter.notifyDataSetChanged();
+					}
+					
+						})
+			.setNegativeButton("Cancel", null).show();
 	}
 	
 	/* Fragment interface */
