@@ -11,7 +11,8 @@ public final class R {
     public static final class attr {
     }
     public static final class color {
-        public static final int list_selected=0x7f040002;
+        public static final int black=0x7f040002;
+        public static final int list_selected=0x7f040003;
         public static final int transparent=0x7f040000;
         public static final int white=0x7f040001;
     }
@@ -44,11 +45,12 @@ public final class R {
         public static final int home_market_button=0x7f070014;
         public static final int home_trade_button=0x7f070017;
         public static final int login_progress=0x7f070018;
-        public static final int market_webview=0x7f07001d;
-        public static final int trade_center_device_text=0x7f070019;
-        public static final int trade_center_message_in=0x7f07001c;
-        public static final int trade_center_message_out=0x7f07001a;
-        public static final int trade_center_send_button=0x7f07001b;
+        public static final int market_card_list=0x7f070019;
+        public static final int market_progress_text=0x7f07001a;
+        public static final int trade_center_device_text=0x7f07001b;
+        public static final int trade_center_message_in=0x7f07001e;
+        public static final int trade_center_message_out=0x7f07001c;
+        public static final int trade_center_send_button=0x7f07001d;
     }
     public static final class layout {
         public static final int card_manager_activity=0x7f030000;
@@ -60,8 +62,8 @@ public final class R {
         public static final int friend_row=0x7f030006;
         public static final int home_activity=0x7f030007;
         public static final int login_activity=0x7f030008;
-        public static final int trade_center_activity=0x7f030009;
-        public static final int web_browser=0x7f03000a;
+        public static final int market_activity=0x7f030009;
+        public static final int trade_center_activity=0x7f03000a;
     }
     public static final class string {
         public static final int app_name=0x7f050000;

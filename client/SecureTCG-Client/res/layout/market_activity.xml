@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    
+    <ListView 
+        android:id="@+id/market_card_list"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_marginBottom="50dp"
+        android:layout_gravity="top"
+        android:background="@color/transparent"
+        android:choiceMode="singleChoice"
+        android:cacheColorHint="@color/transparent" />
+    
+    <TextView
+        android:id="@+id/market_progress_text"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_gravity="bottom"
+        android:background="@color/black"
+        android:textColor="@color/white"
+        android:textStyle="bold" />
+
+</FrameLayout>
