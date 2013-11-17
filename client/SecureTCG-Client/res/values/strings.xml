@@ -23,6 +23,12 @@
     <string name="bluetooth_start_find_devices">Start finding devices</string>
     <string name="bluetooth_stop_find_devices">Stop finding devices</string>
     
+    <!-- Market -->
+    <string name="market_get_cards">Click here to get market information</string>
+    <string name="market_start">Retrieving market information</string>
+    <string name="market_finish">Retrieval complete</string>
+    <string name="market_error">Unable to complete request</string>
+    
     <!-- Deck -->
     <string name="deck_manager_new">New Deck</string>
     <string name="deck_manager_name">Name</string>
