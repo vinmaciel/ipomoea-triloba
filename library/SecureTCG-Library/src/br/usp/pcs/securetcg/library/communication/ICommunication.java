@@ -1,4 +1,4 @@
-package br.usp.pcs.securetcg.library.ecash;
+package br.usp.pcs.securetcg.library.communication;
 
 import java.math.BigInteger;
 
