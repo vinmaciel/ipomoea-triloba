@@ -8,6 +8,7 @@ import android.widget.Button;
 import br.usp.pcs.securetcg.client.deck.CardManagerActivity;
 import br.usp.pcs.securetcg.client.deck.DeckManagerActivity;
 import br.usp.pcs.securetcg.client.market.MarketActivity;
+import br.usp.pcs.securetcg.client.trade.FriendManagerActivity;
 
 public class HomeActivity extends Activity {
 	
@@ -15,46 +16,69 @@ public class HomeActivity extends Activity {
 	private Button marketButton;
 	private Button decksButton;
 	private Button cardsButton;
+	private Button tradeButton;
 	
+	/** Life-cycle Methods **/
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		// FIXME layout
-		setContentView(R.layout.main_activity);
+		setContentView(R.layout.home_activity);
 		
 		getLayoutObjects();
 		setLayoutObjects();
 	}
 	
+	/** Layout Methods **/
 	private void getLayoutObjects() {
-		marketButton = (Button) findViewById(R.main.market_button);
-		decksButton = (Button) findViewById(R.main.decks_button);
-		cardsButton = (Button) findViewById(R.main.cards_button);
+		marketButton = (Button) findViewById(R.id.home_market_button);
+		decksButton = (Button) findViewById(R.id.home_decks_button);
+		cardsButton = (Button) findViewById(R.id.home_cards_button);
+		tradeButton = (Button) findViewById(R.id.home_trade_button);
 	}
 	
 	private void setLayoutObjects() {
-		marketButton.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				startActivity(new Intent(HomeActivity.this, MarketActivity.class));
-			}
-		});
+		marketButton.setOnClickListener(new OnClickMarket());
+		decksButton.setOnClickListener(new OnClickDeck());
+		cardsButton.setOnClickListener(new OnClickCards());
+		tradeButton.setOnClickListener(new OnClickTrade());
+	}
+	
+	/** OnClick Listeners **/
+	private class OnClickMarket implements View.OnClickListener {
+
+		@Override
+		public void onClick(View v) {
+			startActivity(new Intent(HomeActivity.this, MarketActivity.class));
+		}
 		
-		decksButton.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				startActivity(new Intent(HomeActivity.this, DeckManagerActivity.class));
-			}
-		});
+	}
+	
+	private class OnClickDeck implements View.OnClickListener {
+
+		@Override
+		public void onClick(View v) {
+			startActivity(new Intent(HomeActivity.this, DeckManagerActivity.class));
+		}
 		
-		cardsButton.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				startActivity(new Intent(HomeActivity.this, CardManagerActivity.class));
-			}
-		});
+	}
+	
+	private class OnClickCards implements View.OnClickListener {
+
+		@Override
+		public void onClick(View v) {
+			Intent cardsIntent = new Intent(HomeActivity.this, CardManagerActivity.class);
+			cardsIntent.putExtra(br.usp.pcs.securetcg.client.deck.Constants.DECK_SOURCE, br.usp.pcs.securetcg.client.deck.Constants.DECK_ALL);
+			startActivity(cardsIntent);
+		}
+		
+	}
+	
+	private class OnClickTrade implements View.OnClickListener {
+
+		@Override
+		public void onClick(View v) {
+			startActivity(new Intent(HomeActivity.this, FriendManagerActivity.class));
+		}
+		
 	}
 }

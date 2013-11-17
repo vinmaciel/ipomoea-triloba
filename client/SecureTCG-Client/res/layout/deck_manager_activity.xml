@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/deck_manager_activity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
     
     <ListView 
-        android:id="@+deck/deck_list"
+        android:id="@+id/deck_manager_deck_list"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_gravity="top"
-        android:background="@android:color/transparent"
-        android:choiceMode="multipleChoice"
-        android:cacheColorHint="@android:color/transparent" />
+        android:background="@color/transparent"
+        android:choiceMode="singleChoice"
+        android:cacheColorHint="@color/transparent" />
 
-</LinearLayout>
+</FrameLayout>

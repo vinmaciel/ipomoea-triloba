@@ -5,7 +5,7 @@
     <session-factory>
         <!-- Database connection settings -->
         <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
-        <property name="connection.url">jdbc:mysql://localhost/test_db</property>
+        <property name="connection.url">jdbc:mysql://localhost/securetcg</property>
         <property name="connection.username">root</property>
         <property name="connection.password">mysql</property>
         
@@ -23,5 +23,6 @@
         
         <mapping class="br.usp.pcs.securetcg.server.test.TestClass1" />
         <mapping class="br.usp.pcs.securetcg.server.test.TestClass2" />
+        <mapping class="br.usp.pcs.securetcg.server.model.CardClass" />
     </session-factory>
 </hibernate-configuration>

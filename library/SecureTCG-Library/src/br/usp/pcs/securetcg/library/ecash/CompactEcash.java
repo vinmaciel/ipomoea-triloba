@@ -6,6 +6,7 @@ import br.usp.pcs.securetcg.library.clsign.CLPrivateKey;
 import br.usp.pcs.securetcg.library.clsign.CLPublicKey;
 import br.usp.pcs.securetcg.library.clsign.CLSign;
 import br.usp.pcs.securetcg.library.clsign.CLSignature;
+import br.usp.pcs.securetcg.library.communication.ICommunication;
 import br.usp.pcs.securetcg.library.ecash.model.UPrivateKey;
 import br.usp.pcs.securetcg.library.ecash.model.UPublicKey;
 import br.usp.pcs.securetcg.library.ecash.model.Wallet;
@@ -194,7 +195,7 @@ public class CompactEcash {
 	 * 
 	 * @return array of {@link BigInteger} with 2 challenges for the Proof of Knowledge.
 	 */
-	public BigInteger[] withdraw_BankSide_Challenge() {
+	public static BigInteger[] withdraw_BankSide_Challenge() {
 		SystemParameter par = SystemParameter.get();
 		
 		BigInteger challenge, challengePK;
@@ -230,7 +231,7 @@ public class CompactEcash {
 	 * and a {@link CLSignature} on the committed value.
 	 * </ul>
 	 */
-	public Object[] withdraw_BankSide_Proof(BigInteger _A, BigInteger Gu, BigInteger J, BigInteger Q, 
+	public static Object[] withdraw_BankSide_Proof(BigInteger _A, BigInteger Gu, BigInteger J, BigInteger Q, 
 											BigInteger[] tr, BigInteger[] sr, BigInteger[] challenge,
 											CLPrivateKey sk, CLPublicKey pk) {
 		SystemParameter par = SystemParameter.get();

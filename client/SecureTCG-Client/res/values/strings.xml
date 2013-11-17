@@ -2,13 +2,41 @@
 
     <string name="app_name">Secure TCG</string>
     
+    <!-- Title -->
+    <string name="home_title">Home</string>
     <string name="market_title">Market</string>
     <string name="deck_manager_title">Deck Manager</string>
     <string name="card_manager_title">Card Manager</string>
     <string name="card_info_title">Card Info</string>
+    <string name="friend_manager_title">Friend Manager</string>
+    <string name="trade_center_title">Trade Center</string>
     
+    <!-- Main -->
     <string name="market_button">Market</string>
     <string name="decks_button">Decks</string>
     <string name="cards_button">Cards</string>
+    <string name="trade_button">Trade</string>
+    
+    <!-- Trade -->
+    <string name="bluetooth_start_discovery">Start device discovery</string>
+    <string name="bluetooth_stop_discovery">Discovery ready</string>
+    <string name="bluetooth_start_find_devices">Start finding devices</string>
+    <string name="bluetooth_stop_find_devices">Stop finding devices</string>
+    
+    <!-- Market -->
+    <string name="market_get_cards">Click here to get market information</string>
+    <string name="market_start">Retrieving market information</string>
+    <string name="market_finish">Retrieval complete</string>
+    <string name="market_error">Unable to complete request</string>
+    
+    <!-- Deck -->
+    <string name="deck_manager_new">New Deck</string>
+    <string name="deck_manager_name">Name</string>
+    <string name="deck_manager_description">Description</string>
+    <string name="deck_manager_create">Create</string>
+    <string name="deck_manager_cancel">Cancel</string>
+    
+    <!-- Card -->
+    <string name="card_manager_thumbnail_description">Card preview</string>
 
 </resources>

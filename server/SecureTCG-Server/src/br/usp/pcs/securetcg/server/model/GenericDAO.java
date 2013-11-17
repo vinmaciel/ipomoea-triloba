@@ -1,4 +1,4 @@
-package br.usp.pcs.securetcg.server;
+package br.usp.pcs.securetcg.server.model;
 
 import java.util.List;
 
@@ -60,6 +60,32 @@ public class GenericDAO<T> {
 		return result;
 	}
 	
+	public List<T> getAll() {
+		Transaction transaction = null;
+		Session session = getSessionFactory().openSession();
+		List<T> result = null;
+		
+		try {
+			transaction = session.beginTransaction();
+			Query query = session.createQuery("from " + entityClass.getSimpleName());
+			@SuppressWarnings("unchecked")
+			List<T> list = (List<T>) query.list();
+			result = list;	//really?... hibernate...
+		}
+		catch(RuntimeException e) {
+			if(transaction != null)
+				transaction.rollback();
+			e.printStackTrace();
+		}
+		finally {
+			session.flush();
+			session.close();
+		}
+		
+		return result;
+		
+	}
+	
 	public T get(long id) {
 		Transaction transaction = null;
 		Session session = getSessionFactory().openSession();
@@ -69,7 +95,7 @@ public class GenericDAO<T> {
 			transaction = session.beginTransaction();
 			Query query = session.createQuery("from " + entityClass.getSimpleName() + " as o where o.id = :id").setLong("id", id);
 			@SuppressWarnings("unchecked")
-			List<T> list = query.list();
+			List<T> list = (List<T>) query.list();
 			if(list != null && !list.isEmpty())
 				result = list.get(0);
 		}
@@ -84,6 +110,46 @@ public class GenericDAO<T> {
 		}
 		
 		return result;
+	}
+	
+	public void update(T obj) {
+		Transaction transaction = null;
+		Session session = getSessionFactory().openSession();
+		
+		try {
+			transaction = session.beginTransaction();
+			session.update(obj);
+			transaction.commit();
+		}
+		catch(RuntimeException e) {
+			if(transaction != null)
+				transaction.rollback();
+			e.printStackTrace();
+		}
+		finally {
+			session.flush();
+			session.close();
+		}
+	}
+	
+	public void delete(T obj) {
+		Transaction transaction = null;
+		Session session = getSessionFactory().openSession();
+		
+		try {
+			transaction = session.beginTransaction();
+			session.delete(obj);
+			transaction.commit();
+		}
+		catch(RuntimeException e) {
+			if(transaction != null)
+				transaction.rollback();
+			e.printStackTrace();
+		}
+		finally {
+			session.flush();
+			session.close();
+		}
 	}
 	
 }
