@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.PublicKey;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -97,12 +99,12 @@ public class MarketActivity extends Activity {
 	}
 	
 	/* UI methods */
-	public void getLayoutObjects() {
+	private void getLayoutObjects() {
 		progressText = (TextView) findViewById(R.id.market_progress_text);
 		cardList = (ListView) findViewById(R.id.market_card_list);
 	}
 	
-	public void setLayoutObjects() {
+	private void setLayoutObjects() {
 		cardAdapter = new CardAdapter();
 		cardList.setAdapter(cardAdapter);
 		cardList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -144,6 +146,7 @@ public class MarketActivity extends Activity {
 		}
 		
 		public View getView(int position, View convertView, ViewGroup parent) {
+			Log.d("Market", "get view " + position);
 			View row = convertView;
 			
 			if(row == null) {
@@ -155,8 +158,8 @@ public class MarketActivity extends Activity {
 			TextView description = (TextView) row.findViewById(R.id.card_row_description);
 			ImageView thumbnail = (ImageView) row.findViewById(R.id.card_row_thumbnail);
 			
-			name.setText("" + cards.get(position));
-			description.setText("" + cards.get(position));
+			name.setText("" + cards.get(position).getName());
+			description.setText("" + cards.get(position).getDescription());
 			//TODO set image to thumbnail
 			background.setBackgroundColor(selected == position ? getResources().getColor(R.color.list_selected) : getResources().getColor(R.color.transparent));
 			
@@ -189,12 +192,13 @@ public class MarketActivity extends Activity {
 		
 	}
 	
-	private class GetCardsFromMarketTask extends AsyncTask<Long, String, Boolean> {
+	private class GetCardsFromMarketTask extends AsyncTask<Long, CardClass, Boolean> {
 
 		@Override
 		protected void onPreExecute() {
 			super.onPreExecute();
-			publishProgress(getResources().getString(R.string.market_start));
+			progressText.setText(getResources().getString(R.string.market_start));
+			cards.removeAll(cards);
 		}
 		
 		@Override
@@ -204,25 +208,25 @@ public class MarketActivity extends Activity {
 				URL url = new URL(Constants.MARKET_URL + query);
 				HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 				
-				int bytes = connection.getContentLength();
-				byte[] buffer = new byte[bytes == -1? 1000000 : bytes+1];
+//				int bytes = connection.getContentLength();
+//				byte[] buffer = new byte[bytes == -1? 1000000 : bytes+1];
+				byte[] buffer = new byte[1000000];
 				InputStream in = connection.getInputStream();
-				bytes = in.read(buffer);
+				int bytes = in.read(buffer);
 				
 				String json = new String(buffer, 0, bytes);
 				MarketCardSetJson cardSetJson = new Gson().fromJson(json, MarketCardSetJson.class);
 				MarketCardJson[] cardJsons = cardSetJson.getCardSet();
 				
-				List<CardClass> marketCards = new LinkedList<CardClass>();
 				for(MarketCardJson cardJson :  cardJsons) {
 					CardClass cardClass = new CardClass();
 					cardClass.setId(cardJson.getId());
 					cardClass.setName(cardJson.getName());
 					cardClass.setDescription(cardJson.getDescription());
 					
-					marketCards.add(cardClass);
+					publishProgress(cardClass);
+					Log.d("Market", "added " + cardClass.toString());
 				}
-				cards = marketCards;
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 				return false;
@@ -239,18 +243,20 @@ public class MarketActivity extends Activity {
 		@Override
 		protected void onPostExecute(Boolean result) {
 			super.onPostExecute(result);
+			Log.d("Market", "post: " + result);
 			if(result) {
-				publishProgress(getResources().getString(R.string.market_finish));
-				cardAdapter.notifyDataSetChanged();
+				progressText.setText(getResources().getString(R.string.market_finish));
+//				for(int i = 0; i < cards.size(); i++) cardAdapter.notifyDataSetChanged();
 			}
 			else
-				publishProgress(getResources().getString(R.string.market_error));
+				progressText.setText(getResources().getString(R.string.market_error));
 		}
 		
 		@Override
-		protected void onProgressUpdate(String... values) {
+		protected void onProgressUpdate(CardClass... values) {
 			super.onProgressUpdate(values);
-			progressText.setText(values[0]);
+			cards.add(values[0]);
+			cardAdapter.notifyDataSetChanged();
 		}
 		
 	}
