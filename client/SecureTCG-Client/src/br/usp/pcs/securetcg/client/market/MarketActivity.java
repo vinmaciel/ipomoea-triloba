@@ -1,5 +1,6 @@
 package br.usp.pcs.securetcg.client.market;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -11,9 +12,13 @@ import java.util.List;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,6 +31,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import br.usp.pcs.securetcg.client.R;
+import br.usp.pcs.securetcg.client.database.CardClassDAO;
 import br.usp.pcs.securetcg.client.deck.CardInfoActivity;
 import br.usp.pcs.securetcg.client.model.CardClass;
 import br.usp.pcs.securetcg.library.communication.json.MarketCardJson;
@@ -97,12 +103,12 @@ public class MarketActivity extends Activity {
 	}
 	
 	/* UI methods */
-	public void getLayoutObjects() {
+	private void getLayoutObjects() {
 		progressText = (TextView) findViewById(R.id.market_progress_text);
 		cardList = (ListView) findViewById(R.id.market_card_list);
 	}
 	
-	public void setLayoutObjects() {
+	private void setLayoutObjects() {
 		cardAdapter = new CardAdapter();
 		cardList.setAdapter(cardAdapter);
 		cardList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -155,9 +161,16 @@ public class MarketActivity extends Activity {
 			TextView description = (TextView) row.findViewById(R.id.card_row_description);
 			ImageView thumbnail = (ImageView) row.findViewById(R.id.card_row_thumbnail);
 			
-			name.setText("" + cards.get(position));
-			description.setText("" + cards.get(position));
-			//TODO set image to thumbnail
+			name.setText("" + cards.get(position).getName());
+			description.setText("" + cards.get(position).getDescription());
+			String path = cards.get(position).getBitmapPath();
+			
+			if(path != null) {
+				Bitmap bitmap = BitmapFactory.decodeFile(path);
+				Matrix matrix = new Matrix();
+				matrix.setScale(0.3f, 0.3f);
+				thumbnail.setImageBitmap(Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false));
+			}
 			background.setBackgroundColor(selected == position ? getResources().getColor(R.color.list_selected) : getResources().getColor(R.color.transparent));
 			
 			return row;
@@ -189,40 +202,44 @@ public class MarketActivity extends Activity {
 		
 	}
 	
-	private class GetCardsFromMarketTask extends AsyncTask<Long, String, Boolean> {
+	private class GetCardsFromMarketTask extends AsyncTask<Long, CardClass, Boolean> {
 
 		@Override
 		protected void onPreExecute() {
 			super.onPreExecute();
-			publishProgress(getResources().getString(R.string.market_start));
+			progressText.setText(getResources().getString(R.string.market_start));
+			cards.removeAll(cards);
 		}
 		
 		@Override
 		protected Boolean doInBackground(Long... params) {
-			String query = "?" + "cardId=" + params[0] + "&" + "downloadImage=" + false;
+			CardClass[] retrievedCards;
 			try {
+				String query = "?" + "cardId=" + params[0] + "&" + "downloadImage=" + false;
 				URL url = new URL(Constants.MARKET_URL + query);
 				HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 				
-				int bytes = connection.getContentLength();
-				byte[] buffer = new byte[bytes == -1? 1000000 : bytes+1];
+				byte[] buffer = new byte[1000000];
 				InputStream in = connection.getInputStream();
-				bytes = in.read(buffer);
+				int bytes = in.read(buffer);
 				
 				String json = new String(buffer, 0, bytes);
 				MarketCardSetJson cardSetJson = new Gson().fromJson(json, MarketCardSetJson.class);
 				MarketCardJson[] cardJsons = cardSetJson.getCardSet();
 				
-				List<CardClass> marketCards = new LinkedList<CardClass>();
-				for(MarketCardJson cardJson :  cardJsons) {
+				retrievedCards = new CardClass[cardJsons.length];
+				
+				for(int i = 0; i < cardJsons.length; i++) {
 					CardClass cardClass = new CardClass();
-					cardClass.setId(cardJson.getId());
-					cardClass.setName(cardJson.getName());
-					cardClass.setDescription(cardJson.getDescription());
+					cardClass.setId(cardJsons[i].getId());
+					cardClass.setName(cardJsons[i].getName());
+					cardClass.setDescription(cardJsons[i].getDescription());
 					
-					marketCards.add(cardClass);
+					retrievedCards[i] = cardClass;
+					
+					publishProgress(cardClass);
 				}
-				cards = marketCards;
+				
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 				return false;
@@ -233,6 +250,44 @@ public class MarketActivity extends Activity {
 				e.printStackTrace();
 				return false;
 			}
+			
+			//Download image
+			for(CardClass card : retrievedCards) {
+				CardClass classStored = new CardClassDAO(MarketActivity.this).get(card.getId());
+				
+				if(classStored == null || classStored.getBitmapPath() == null) {
+					
+					try {
+						String query = "?" + "cardId=" + card.getId() + "&" + "downloadImage=" + true;
+						URL url = new URL(Constants.MARKET_URL + query);
+						HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+						
+						InputStream in = connection.getInputStream();
+						Bitmap bitmap = BitmapFactory.decodeStream(in);
+						if(bitmap == null) {
+							Log.d("Market", "Failed to get " + card.getId() + "\'s bitmap.");
+							continue;
+						}
+						
+						String path = MarketActivity.this.getFilesDir().getAbsolutePath();
+						path += "/" + card.getName() + ".png";
+						FileOutputStream out = new FileOutputStream(path);
+						bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+						out.close();
+						
+						card.setBitmapPath(path);
+						publishProgress(card);
+						
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+						continue;
+					} catch (IOException e) {
+						e.printStackTrace();
+						continue;
+					}
+				}
+			}
+			
 			return true;
 		}
 		
@@ -240,17 +295,25 @@ public class MarketActivity extends Activity {
 		protected void onPostExecute(Boolean result) {
 			super.onPostExecute(result);
 			if(result) {
-				publishProgress(getResources().getString(R.string.market_finish));
-				cardAdapter.notifyDataSetChanged();
+				progressText.setText(getResources().getString(R.string.market_finish));
 			}
 			else
-				publishProgress(getResources().getString(R.string.market_error));
+				progressText.setText(getResources().getString(R.string.market_error));
 		}
 		
 		@Override
-		protected void onProgressUpdate(String... values) {
+		protected void onProgressUpdate(CardClass... values) {
 			super.onProgressUpdate(values);
-			progressText.setText(values[0]);
+			
+			CardClassDAO classDAO = new CardClassDAO(MarketActivity.this);
+			
+			if(classDAO.get(values[0].getId()) == null)	classDAO.add(values[0]);
+			else	classDAO.update(values[0]);
+			
+			if(!cards.contains(values[0]))	cards.add(values[0]);
+			else	cards.set(cards.indexOf(values[0]), values[0]);
+			
+			cardAdapter.notifyDataSetChanged();
 		}
 		
 	}

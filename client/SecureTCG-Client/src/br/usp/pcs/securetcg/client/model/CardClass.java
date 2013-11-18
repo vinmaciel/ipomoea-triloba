@@ -38,6 +38,15 @@ public class CardClass implements Serializable {
 	}
 	
 	
+	@Override
+	public boolean equals(Object o) {
+		if(!(o instanceof CardClass)) return false;
+		if(((CardClass) o).getId() != this.getId()) return false;
+		
+		return true;
+	}
+	
+	@Override
 	public String toString() {
 		return "CardClass with id=" + this.id + " name=" + this.name +
 			" description=" + this.description + " bitmap path=" + this.bitmapPath; 
