@@ -4,5 +4,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
     <color name="list_selected">#3F0738FF</color>
+    <color name="overlay_transparent">#7F555555</color>
 
 </resources>

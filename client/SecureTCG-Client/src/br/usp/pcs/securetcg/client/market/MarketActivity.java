@@ -116,7 +116,7 @@ public class MarketActivity extends Activity {
 			@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 			@Override
 			public void onItemClick(AdapterView<?> parent, View child, int position, long id) {
-				if(selected == -1)
+				if(selected != position)
 					selected = position;
 				else
 					selected = -1;
