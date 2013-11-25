@@ -5,7 +5,7 @@ import org.apache.struts.action.ActionForm;
 public class LoginActionForm extends ActionForm {
 
 	private String name;
-	private byte[] pku;
+	private String pku;
 	
 	public String getName() {
 		return name;
@@ -14,10 +14,10 @@ public class LoginActionForm extends ActionForm {
 		this.name = name;
 	}
 	
-	public byte[] getPku() {
+	public String getPku() {
 		return pku;
 	}
-	public void setPku(byte[] pku) {
+	public void setPku(String pku) {
 		this.pku = pku;
 	}
 }

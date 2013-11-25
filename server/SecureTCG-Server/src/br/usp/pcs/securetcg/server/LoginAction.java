@@ -1,5 +1,7 @@
 package br.usp.pcs.securetcg.server;
 
+import java.math.BigInteger;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -19,7 +21,7 @@ public class LoginAction extends Action {
 		
 		if(request.getMethod().equals("POST")) {
 			String name = laForm.getName();
-			byte[] pku = laForm.getPku();
+			String pku = laForm.getPku();
 			if(name == null || pku == null) {
 				response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
 				return null;
@@ -29,7 +31,7 @@ public class LoginAction extends Action {
 			
 			Player player = new Player();
 			player.setName(name);
-			player.setPku(pku);
+			player.setPku(new BigInteger(pku).toByteArray());
 			playerDAO.add(player);
 			
 			response.setStatus(HttpServletResponse.SC_OK);
