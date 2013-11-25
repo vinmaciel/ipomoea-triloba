@@ -12,4 +12,6 @@ public class Constants {
 	public static final int DECK_SEND_CARD = 3;
 	
 	public static final String CARDS_INSERTED = "inserted";
+	
+	public static final String CARD_DIRECTORY = "cards";
 }

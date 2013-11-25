@@ -48,3 +48,9 @@ insert into class (id, name, description, bitmap_path)
 values (18,'The Float','The Float, as its name implies, likes to make things float.','SakuraDeck\\The_float.jpg');
 insert into class (id, name, description, bitmap_path)
 values (19,'The Erase','The Erase has the power to make almost anything, including people, disappear.','SakuraDeck\\The_erase.jpg');
+
+create table player(
+	id integer primary key auto_increment,
+	name varchar(127) not null,
+	pku blob not null
+);

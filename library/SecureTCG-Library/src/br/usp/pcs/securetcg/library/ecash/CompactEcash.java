@@ -1,5 +1,8 @@
 package br.usp.pcs.securetcg.library.ecash;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 
 import br.usp.pcs.securetcg.library.clsign.CLPrivateKey;
@@ -48,17 +51,52 @@ public class CompactEcash {
 	}
 	
 	/**
-	 * Generates the Bank key-pair.
+	 * Generates the Bank key-pair using unrestricted generators.
 	 * 
 	 * @param pkb bank public key.
 	 * @param skb bank private key.
 	 */
+	@Deprecated
 	public static void bKeyGen(CLPublicKey pkb, CLPrivateKey skb) {
 		SystemParameter par = SystemParameter.get();
-		//TODO fix residue size
-		CLSign.generateKeyPair(2*par.getK(), 3, pkb, skb);
+		CLSign.generateKeyPair(2*par.getK(), 7, pkb, skb);
 		
-		//TODO may generate two key pairs (sign wallet and enroll user)
+		//May generate two key pairs (sign wallet and enroll user) - won't emit certificates
+	}
+	
+	/**
+	 * Generates the default Bank key-pair.
+	 * This method doesn't generate the 
+	 * 
+	 * @param pkb bank public key.
+	 * @param skb bank private key.
+	 * @param path String that contains the path to the secure parameter stored in a sandbox.
+	 */
+	public static void bKeyGenDefault(CLPublicKey pkb, CLPrivateKey skb, String path) {
+		SystemParameter par = SystemParameter.get();
+
+		if(pkb == null) pkb = new CLPublicKey();
+		if(skb == null) skb = new CLPrivateKey();
+		
+		pkb.setN(par.getN());
+		pkb.setR(par.getG());
+		pkb.setS(par.getH());
+		pkb.setZ(par.getZ());
+		
+		byte[] key = null;
+		try {
+			byte[] buffer = new byte[par.getK()];
+			InputStream in = new FileInputStream(path);
+			int bytes = in.read(buffer);
+			in.close();
+			
+			key = new byte[bytes];
+			for(int i = 0; i < bytes; i++)
+				key[i] = buffer[i];
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		skb.setP(key);
 	}
 	
 	/**
@@ -79,10 +117,10 @@ public class CompactEcash {
 			u = new BigInteger(par.getK(), Prime.random);
 		} while(u.compareTo(new BigInteger(par.getP())) >= 0);
 		sku.setU(u.toByteArray());
-		//TODO is this really P (or N)?
+		//FIXME is this really P (or N)? it's P
 		pku.setGu((new BigInteger(par.getG(0))).modPow(u, new BigInteger(par.getP())).toByteArray());
 		
-		//TODO may need a certificate from B
+		//may need a certificate from B - won't be done
 	}
 	
 	/**

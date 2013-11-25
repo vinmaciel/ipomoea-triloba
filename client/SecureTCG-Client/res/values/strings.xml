@@ -38,5 +38,6 @@
     
     <!-- Card -->
     <string name="card_manager_thumbnail_description">Card preview</string>
+    <string name="card_info_image_description">Card image</string>
 
 </resources>

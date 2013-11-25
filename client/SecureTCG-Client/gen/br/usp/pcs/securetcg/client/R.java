@@ -13,6 +13,7 @@ public final class R {
     public static final class color {
         public static final int black=0x7f040002;
         public static final int list_selected=0x7f040003;
+        public static final int overlay_transparent=0x7f040004;
         public static final int transparent=0x7f040000;
         public static final int white=0x7f040001;
     }
@@ -20,50 +21,56 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
-        public static final int card_manager_card_list=0x7f070000;
-        public static final int card_row_background=0x7f070001;
-        public static final int card_row_description=0x7f070004;
-        public static final int card_row_name=0x7f070003;
-        public static final int card_row_thumbnail=0x7f070002;
-        public static final int deck_manager_activity=0x7f070005;
-        public static final int deck_manager_create_cancel=0x7f07000a;
-        public static final int deck_manager_create_description=0x7f070008;
-        public static final int deck_manager_create_name=0x7f070007;
-        public static final int deck_manager_create_submit=0x7f070009;
-        public static final int deck_manager_deck_list=0x7f070006;
-        public static final int deck_row_background=0x7f07000b;
-        public static final int deck_row_cards_size=0x7f07000e;
-        public static final int deck_row_description=0x7f07000d;
-        public static final int deck_row_name=0x7f07000c;
-        public static final int friend_manager_discover_button=0x7f07000f;
-        public static final int friend_manager_find_button=0x7f070010;
-        public static final int friend_manager_friend_list=0x7f070011;
-        public static final int friend_row_name=0x7f070012;
-        public static final int friend_row_status=0x7f070013;
-        public static final int home_cards_button=0x7f070016;
-        public static final int home_decks_button=0x7f070015;
-        public static final int home_market_button=0x7f070014;
-        public static final int home_trade_button=0x7f070017;
-        public static final int login_progress=0x7f070018;
-        public static final int market_card_list=0x7f070019;
-        public static final int market_progress_text=0x7f07001a;
-        public static final int trade_center_device_text=0x7f07001b;
-        public static final int trade_center_message_in=0x7f07001e;
-        public static final int trade_center_message_out=0x7f07001c;
-        public static final int trade_center_send_button=0x7f07001d;
+        public static final int card_manager_card_list=0x7f070005;
+        public static final int card_row_background=0x7f070006;
+        public static final int card_row_description=0x7f070009;
+        public static final int card_row_name=0x7f070008;
+        public static final int card_row_thumbnail=0x7f070007;
+        public static final int deck_manager_activity=0x7f07000a;
+        public static final int deck_manager_create_cancel=0x7f07000f;
+        public static final int deck_manager_create_description=0x7f07000d;
+        public static final int deck_manager_create_name=0x7f07000c;
+        public static final int deck_manager_create_submit=0x7f07000e;
+        public static final int deck_manager_deck_list=0x7f07000b;
+        public static final int deck_row_background=0x7f070010;
+        public static final int deck_row_cards_size=0x7f070013;
+        public static final int deck_row_description=0x7f070012;
+        public static final int deck_row_name=0x7f070011;
+        public static final int friend_manager_discover_button=0x7f070014;
+        public static final int friend_manager_find_button=0x7f070015;
+        public static final int friend_manager_friend_list=0x7f070016;
+        public static final int friend_row_name=0x7f070017;
+        public static final int friend_row_status=0x7f070018;
+        public static final int home_cards_button=0x7f07001b;
+        public static final int home_decks_button=0x7f07001a;
+        public static final int home_market_button=0x7f070019;
+        public static final int home_trade_button=0x7f07001c;
+        public static final int info_background=0x7f070000;
+        public static final int info_description=0x7f070004;
+        public static final int info_image=0x7f070001;
+        public static final int info_name=0x7f070003;
+        public static final int info_overlay=0x7f070002;
+        public static final int login_progress=0x7f07001d;
+        public static final int market_card_list=0x7f07001e;
+        public static final int market_progress_text=0x7f07001f;
+        public static final int trade_center_device_text=0x7f070020;
+        public static final int trade_center_message_in=0x7f070023;
+        public static final int trade_center_message_out=0x7f070021;
+        public static final int trade_center_send_button=0x7f070022;
     }
     public static final class layout {
-        public static final int card_manager_activity=0x7f030000;
-        public static final int card_row=0x7f030001;
-        public static final int deck_manager_activity=0x7f030002;
-        public static final int deck_manager_create=0x7f030003;
-        public static final int deck_row=0x7f030004;
-        public static final int friend_manager_activity=0x7f030005;
-        public static final int friend_row=0x7f030006;
-        public static final int home_activity=0x7f030007;
-        public static final int login_activity=0x7f030008;
-        public static final int market_activity=0x7f030009;
-        public static final int trade_center_activity=0x7f03000a;
+        public static final int card_info_activity=0x7f030000;
+        public static final int card_manager_activity=0x7f030001;
+        public static final int card_row=0x7f030002;
+        public static final int deck_manager_activity=0x7f030003;
+        public static final int deck_manager_create=0x7f030004;
+        public static final int deck_row=0x7f030005;
+        public static final int friend_manager_activity=0x7f030006;
+        public static final int friend_row=0x7f030007;
+        public static final int home_activity=0x7f030008;
+        public static final int login_activity=0x7f030009;
+        public static final int market_activity=0x7f03000a;
+        public static final int trade_center_activity=0x7f03000b;
     }
     public static final class string {
         public static final int app_name=0x7f050000;
@@ -73,6 +80,7 @@ public final class R {
         public static final int bluetooth_start_find_devices=0x7f05000e;
         public static final int bluetooth_stop_discovery=0x7f05000d;
         public static final int bluetooth_stop_find_devices=0x7f05000f;
+        public static final int card_info_image_description=0x7f05001a;
         public static final int card_info_title=0x7f050005;
         /**  Card 
          */
