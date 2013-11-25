@@ -14,6 +14,8 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -46,7 +48,9 @@ public class LoginActivity extends Activity {
 	protected void onDestroy() {
 		login.cancel(false);
 		try {
-			this.wait(5000);
+			synchronized (this) {
+				this.wait(5000);
+			}
 		} catch (InterruptedException e) {}
 		super.onDestroy();
 	}
@@ -63,12 +67,12 @@ public class LoginActivity extends Activity {
 	private class LoginTask extends AsyncTask<Void, String, Void> {
 
 		private ClientPreferences prefs;
-		private HttpClient client;
+		private AccountManager accManager;
 		
 		private LoginTask(Context context) {
 			super();
 			this.prefs = ClientPreferences.get(context);
-			this.client = new DefaultHttpClient();
+			this.accManager = AccountManager.get(context);
 		}
 		
 		@Override
@@ -88,20 +92,30 @@ public class LoginActivity extends Activity {
 				}
 			} catch(IOException e) {
 				publishProgress("Error");
+				return null;
 			}
+			
+			Account[] accs = accManager.getAccountsByType("com.google");
+			if(accs == null || accs.length <= 0) {
+				publishProgress("Error");
+				return null;
+			}
+			String name = accs[0].name;
 			
 			publishProgress("Authenticating before mint");
 			
 			try {
+				HttpClient client = new DefaultHttpClient();
 				HttpPost post = new HttpPost(Constants.REGISTRATION_URL);
 				List<NameValuePair> values = new ArrayList<NameValuePair>();
+				values.add(new BasicNameValuePair("name", name));
 				values.add(new BasicNameValuePair("pku", new BigInteger(pku.getGu()).toString()));
 				String s = values.toString();
 				Log.d("Login", s);
 				post.setEntity(new ByteArrayEntity(s.getBytes()));
 				HttpResponse response = client.execute(post);
 				Log.d("Login", "code: " + response.getStatusLine().getStatusCode());
-				if(response.getStatusLine().getStatusCode()%100 != 4) {
+				if(response.getStatusLine().getStatusCode() != 200) {
 					throw new ClientProtocolException();
 				}
 				
