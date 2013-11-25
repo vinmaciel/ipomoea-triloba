@@ -4,14 +4,14 @@ import java.math.BigInteger;
 
 import br.usp.pcs.securetcg.library.clsign.CLSignature;
 
-public abstract class ICommunication {
+public interface ICommunication {
 
 	/**
 	 * Requests a wallet from the bank, sending its parameters and random values for the Proof of Knowledge.
 	 * Must receive the following parameters (in order): <br/>
 	 * <ul>
 	 * <li>cardID (Q).
-	 * <li>wallet size (J) - can be <code>null</code>.
+	 * <li>wallet size (J) - must be one (1).
 	 * <li>partial wallet commitment (Cx).
 	 * <li>user public keu (pku).
 	 * <li>4 random values for Proof of Knowledge for Cx (u, s', t, x).

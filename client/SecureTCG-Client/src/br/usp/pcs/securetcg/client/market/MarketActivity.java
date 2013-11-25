@@ -36,6 +36,7 @@ import br.usp.pcs.securetcg.client.deck.CardInfoActivity;
 import br.usp.pcs.securetcg.client.model.CardClass;
 import br.usp.pcs.securetcg.library.communication.json.MarketCardJson;
 import br.usp.pcs.securetcg.library.communication.json.MarketCardSetJson;
+import br.usp.pcs.securetcg.library.ecash.model.Wallet;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -196,8 +197,35 @@ public class MarketActivity extends Activity {
 
 		@Override
 		public boolean onMenuItemClick(MenuItem item) {
-			// TODO withdraw card
+			WithdrawCallback callback = new WithdrawCallback();
+			WithdrawThread withdraw = new WithdrawThread(selected, getApplicationContext(), callback);
+			withdraw.run();
 			return false;
+		}
+		
+	}
+	
+	private class WithdrawCallback implements WithdrawThreadCallback {
+
+		@Override
+		public void onStart() {
+			progressText.setText("Buying card");
+		}
+
+		@Override
+		public void onRequestFailed() {
+			progressText.setText("Unable to connect to mint");
+		}
+
+		@Override
+		public void onSolutionFailed() {
+			progressText.setText("Unable to authenticate");
+		}
+
+		@Override
+		public void onWithdraw(Wallet wallet) {
+			progressText.setText("New card available");
+			// TODO Auto-generated method stub
 		}
 		
 	}

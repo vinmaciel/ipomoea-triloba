@@ -1,76 +1,145 @@
 package br.usp.pcs.securetcg.client;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.security.PrivateKey;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
-import br.usp.pcs.securetcg.client.utils.Constants;
+import br.usp.pcs.securetcg.client.market.Constants;
+import br.usp.pcs.securetcg.library.ecash.model.UPublicKey;
 
 public class LoginActivity extends Activity {
+	
+	private TextView progressText;
+	
+	private LoginTask login;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.login_activity);
 		
-		TextView progress = (TextView) findViewById(R.id.login_progress);
-		PrivateKey sk = null;
+		progressText = (TextView) findViewById(R.id.login_progress);
 		
+		login = new LoginTask(this.getApplicationContext());
+		login.execute();
+	}
+	
+	@Override
+	protected void onDestroy() {
+		login.cancel(false);
 		try {
-			progress.setText("Looking for private key");
-			
-			FileInputStream fis = new FileInputStream(Environment.getDataDirectory() + "/." + Constants.USER_PRIVATE_KEY);
-			ObjectInputStream ois = new ObjectInputStream(fis);
-			sk = (PrivateKey) ois.readObject();
-			ois.close();
-			fis.close();
-			
-			progress.setText("Key found");
+			this.wait(5000);
+		} catch (InterruptedException e) {}
+		super.onDestroy();
+	}
+	
+	private void loginSuccess() {
+		startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+	}
+	
+	private void loginFailed() {
+		Toast.makeText(this, "Unable to log in", Toast.LENGTH_LONG).show();
+		finish();
+	}
+	
+	private class LoginTask extends AsyncTask<Void, String, Void> {
+
+		private ClientPreferences prefs;
+		private HttpClient client;
+		
+		private LoginTask(Context context) {
+			super();
+			this.prefs = ClientPreferences.get(context);
+			this.client = new DefaultHttpClient();
 		}
-		//PrivateKey has not been created yet.
-		catch(FileNotFoundException fnfe) {
-			progress.setText("Generating key pair (this action may take several seconds)");
+		
+		@Override
+		protected Void doInBackground(Void... params) {
+			publishProgress("Looking for saved keys");
 			
-			//TODO Generate a user key pair
+			UPublicKey pku = null;
+			try{
+				pku = prefs.getPublicKey();
+				if(pku == null) {
+					publishProgress("Generating key pair (this action may take several seconds)");
+					prefs.createKey();
+					pku = prefs.getPublicKey();
+				}
+				else {
+					publishProgress("Key found");
+				}
+			} catch(IOException e) {
+				publishProgress("Error");
+			}
+			
+			publishProgress("Authenticating before mint");
 			
 			try {
-				FileOutputStream fos = new FileOutputStream(Environment.getDataDirectory() + "/." + Constants.USER_PRIVATE_KEY);
-				ObjectOutputStream oos = new ObjectOutputStream(fos);
-				oos.writeObject(sk);
-				oos.close();
-				fos.close();
-			}
-			//It is not supposed to happen, but...
-			catch (Exception e) {
+				HttpPost post = new HttpPost(Constants.REGISTRATION_URL);
+				List<NameValuePair> values = new ArrayList<NameValuePair>();
+				values.add(new BasicNameValuePair("pku", new BigInteger(pku.getGu()).toString()));
+				String s = values.toString();
+				Log.d("Login", s);
+				post.setEntity(new ByteArrayEntity(s.getBytes()));
+				HttpResponse response = client.execute(post);
+				Log.d("Login", "code: " + response.getStatusLine().getStatusCode());
+				if(response.getStatusLine().getStatusCode()%100 != 4) {
+					throw new ClientProtocolException();
+				}
+				
+				publishProgress("Done");
+			} catch (ClientProtocolException e) {
 				e.printStackTrace();
-				Toast.makeText(this, "ERROR: Cannot create key file.", Toast.LENGTH_LONG).show();
-				finish();
+				publishProgress("Error");
+			} catch (IOException e) {
+				e.printStackTrace();
+				publishProgress("Error");
 			}
 			
-			progress.setText("Authenticating before mint");
-			
-			//TODO Get mint certificate
-			
-			progress.setText("Done");
-		}
-		//Problems with deserializing the private key.
-		catch(Exception e) {
-			e.printStackTrace();
-			Toast.makeText(this, "ERROR: Cannot load key file.", Toast.LENGTH_LONG).show();
-			finish();
+			return null;
 		}
 		
-		Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-		intent.putExtra(Constants.USER_PRIVATE_KEY, sk);
-		startActivity(intent);
+		@Override
+		protected void onProgressUpdate(String... values) {
+			super.onProgressUpdate(values);
+			progressText.setText(values[0]);
+			
+			if(progressText.equals("Done")) {
+				loginSuccess();
+			}
+			
+			if(progressText.equals("Error")) {
+				loginFailed();
+			}
+		}
+		
+		@Override
+		protected void onCancelled() {
+			try {
+				prefs.destroyKeys();
+			} catch (IOException e) {
+				publishProgress("Error");
+				e.printStackTrace();
+			}
+			super.onCancelled();
+		}
 	}
 }
