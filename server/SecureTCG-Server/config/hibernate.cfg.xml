@@ -24,5 +24,6 @@
         <mapping class="br.usp.pcs.securetcg.server.test.TestClass1" />
         <mapping class="br.usp.pcs.securetcg.server.test.TestClass2" />
         <mapping class="br.usp.pcs.securetcg.server.model.CardClass" />
+        <mapping class="br.usp.pcs.securetcg.server.model.Player" />
     </session-factory>
 </hibernate-configuration>

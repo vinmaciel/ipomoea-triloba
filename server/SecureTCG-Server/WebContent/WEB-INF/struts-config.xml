@@ -9,6 +9,7 @@
     <form-beans>
         <form-bean name="testActionForm" type="br.usp.pcs.securetcg.server.test.TestActionForm"/>
         <form-bean name="withdrawActionForm" type="br.usp.pcs.securetcg.server.WithdrawActionForm"/>
+        <form-bean name="loginActionForm" type="br.usp.pcs.securetcg.server.LoginActionForm"/>
         <form-bean name="marketActionForm" type="br.usp.pcs.securetcg.server.MarketActionForm"/>
     </form-beans>
     
@@ -18,6 +19,9 @@
     <action-mappings>
         <action path="/test" type="br.usp.pcs.securetcg.server.test.TestAction" name="testActionForm" scope="request">
             <forward name="success" path="/test.jsp"/>
+        </action>
+        <action path="/login" type="br.usp.pcs.securetcg.server.LoginAction" name="loginActionForm" scope="request">
+            <forward name="success" path="/#" redirect="false" />
         </action>
         <action path="/withdraw" type="br.usp.pcs.securetcg.server.WithdrawAction" name="withdrawActionForm" scope="request">
             <forward name="success" path="/#" redirect="false" />
