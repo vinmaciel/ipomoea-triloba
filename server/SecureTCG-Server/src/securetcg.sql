@@ -51,6 +51,6 @@ values (19,'The Erase','The Erase has the power to make almost anything, includi
 
 create table player(
 	id integer primary key auto_increment,
-	name varchar(127) not null,
+	name varchar(127) not null unique,
 	pku blob not null
 );
