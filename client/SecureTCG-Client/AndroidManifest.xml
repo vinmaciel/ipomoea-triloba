@@ -37,7 +37,7 @@
         <activity 
             android:name=".market.MarketActivity"
             android:label="@string/market_title"
-            android:screenOrientation="sensor" />
+            android:screenOrientation="portrait" />
         
         <activity 
             android:name=".deck.DeckManagerActivity"

@@ -80,20 +80,20 @@ public final class R {
         public static final int bluetooth_start_find_devices=0x7f05000e;
         public static final int bluetooth_stop_discovery=0x7f05000d;
         public static final int bluetooth_stop_find_devices=0x7f05000f;
-        public static final int card_info_image_description=0x7f05001a;
+        public static final int card_info_image_description=0x7f05001b;
         public static final int card_info_title=0x7f050005;
         /**  Card 
          */
-        public static final int card_manager_thumbnail_description=0x7f050019;
+        public static final int card_manager_thumbnail_description=0x7f05001a;
         public static final int card_manager_title=0x7f050004;
         public static final int cards_button=0x7f05000a;
-        public static final int deck_manager_cancel=0x7f050018;
-        public static final int deck_manager_create=0x7f050017;
-        public static final int deck_manager_description=0x7f050016;
-        public static final int deck_manager_name=0x7f050015;
+        public static final int deck_manager_cancel=0x7f050019;
+        public static final int deck_manager_create=0x7f050018;
+        public static final int deck_manager_description=0x7f050017;
+        public static final int deck_manager_name=0x7f050016;
         /**  Deck 
          */
-        public static final int deck_manager_new=0x7f050014;
+        public static final int deck_manager_new=0x7f050015;
         public static final int deck_manager_title=0x7f050003;
         public static final int decks_button=0x7f050009;
         public static final int friend_manager_title=0x7f050006;
@@ -110,6 +110,7 @@ public final class R {
         public static final int market_get_cards=0x7f050010;
         public static final int market_start=0x7f050011;
         public static final int market_title=0x7f050002;
+        public static final int market_withdraw=0x7f050014;
         public static final int trade_button=0x7f05000b;
         public static final int trade_center_title=0x7f050007;
     }

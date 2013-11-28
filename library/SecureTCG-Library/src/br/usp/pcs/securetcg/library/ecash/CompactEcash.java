@@ -218,7 +218,6 @@ public class CompactEcash {
 		wallet.setT(t.toByteArray());
 		wallet.setX(_A.getT());
 		wallet.setQ(cardID.toByteArray());
-		//FIXME may be another value
 		wallet.setJ(BigInteger.ONE.toByteArray());
 		wallet.setSigA(signature.getA());
 		wallet.setSigE(signature.getE());
@@ -260,7 +259,8 @@ public class CompactEcash {
 	 * @param sr solution to challenge to prove knowledge of C' and sku.
 	 * @param challenge set of challenges for each proof.
 	 * @param sk bank private key skb.
-	 * @param pk bank public keu pkb.
+	 * @param pk bank public key pkb.
+	 * @param ck bank public key to commit ckb.
 	 * 
 	 * @return a set of {@link Object} containing 1 or 3 values: <br/>
 	 * <ul>
@@ -271,7 +271,7 @@ public class CompactEcash {
 	 */
 	public static Object[] withdraw_BankSide_Proof(BigInteger _A, BigInteger Gu, BigInteger J, BigInteger Q, 
 											BigInteger[] tr, BigInteger[] sr, BigInteger[] challenge,
-											CLPrivateKey sk, CLPublicKey pk) {
+											CLPrivateKey sk, CLPublicKey pk, PedPublicKey ck) {
 		SystemParameter par = SystemParameter.get();
 		
 		BigInteger n = new BigInteger(par.getP());
@@ -317,11 +317,6 @@ public class CompactEcash {
 				.multiply(new BigInteger(par.getG(1)).modPow(_s, n)).mod(n)
 				.multiply(new BigInteger(par.getG(3)).modPow(J, n)).mod(n)
 				.multiply(new BigInteger(par.getG(5)).modPow(Q, n)).mod(n);
-		
-		PedPublicKey ck = new PedPublicKey();
-		ck.setG(new byte[][] {par.getG(0), par.getG(1), par.getG(2), par.getG(3), par.getG(5)});
-		ck.setH(par.getG(4));
-		ck.setN(par.getP());
 		
 		//FIXME message size
 		CLSignature signature = CLSign.signBlind(A.toByteArray(), ck, A.toByteArray().length, pk, sk, par.getK());

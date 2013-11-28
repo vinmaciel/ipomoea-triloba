@@ -2,16 +2,27 @@ package br.usp.pcs.securetcg.client.market;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.message.BasicNameValuePair;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import br.usp.pcs.securetcg.client.ClientPreferences;
 import br.usp.pcs.securetcg.library.communication.ICommunication;
 import br.usp.pcs.securetcg.library.communication.json.WithdrawChallengeJson;
+import br.usp.pcs.securetcg.library.communication.json.WithdrawRequestJson;
+import br.usp.pcs.securetcg.library.communication.json.WithdrawSolveJson;
 import br.usp.pcs.securetcg.library.communication.json.WithdrawWalletJson;
 import br.usp.pcs.securetcg.library.ecash.CompactEcash;
 import br.usp.pcs.securetcg.library.ecash.model.UPrivateKey;
@@ -25,26 +36,28 @@ public class WithdrawThread extends Thread {
 	private long cardID;
 	
 	private ClientPreferences prefs;
-	private WithdrawThreadCallback callback;
+	private Handler handler;
 	
-	public WithdrawThread(long cardID, Context context, WithdrawThreadCallback callback) {
+	public WithdrawThread(long cardID, Context context, Handler handler) {
 		super();
 		this.cardID = cardID;
 		this.prefs = ClientPreferences.get(context);
-		this.callback = callback;
+		this.handler = handler;
 	}
 	
 	@Override
 	public void run() {
-		callback.onStart();
+		Message message = handler.obtainMessage(WithdrawHandler.STATE_START);
+		message.sendToTarget();
 		
 		try {
 			UPrivateKey pku = prefs.getPrivateKey();
 			UPublicKey sku = prefs.getPublicKey();
 			
 			Wallet wallet = CompactEcash.withdraw_UserSide(pku, sku, new WithdrawCommunication(), new BigInteger(String.valueOf(this.cardID)));
-			
-			callback.onWithdraw(wallet);
+
+			message = handler.obtainMessage(WithdrawHandler.STATE_DONE, 0, 0, wallet);
+			message.sendToTarget();
 		} catch(IOException e) {
 			
 		}
@@ -52,25 +65,50 @@ public class WithdrawThread extends Thread {
 	
 	private class WithdrawCommunication implements ICommunication {
 		
+		private String cookie = null;
+		
 		@Override
 		public String[] withdraw_request(String[] message) {
 			try {
-				String query =	"?" + "request" + "&" +
-								"card_id=" + message[0] + "&" +
-								"wallet_size=" + message[1] + "&" +
-								"commitment=" + message[2] + "&" +
-								"pku=" + message[3] + "&" +
-								"proof=" + message[4] + "&" +
-								"tr=" + message[5];
-				URL url = new URL(Constants.MARKET_URL + query);
+				String query = "?" + "option=request";
+				URL url = new URL(Constants.WITHDRAW_URL + query);
 				HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+				connection.setDoOutput(true);
+				
+				WithdrawRequestJson request = new WithdrawRequestJson();
+				request.setCardID(Long.valueOf(message[0]));
+				request.setJ(message[1] == null ? 1 : Long.valueOf(message[1]));
+				request.setCommitment(new BigInteger(message[2]).toByteArray());
+				request.setPku(new BigInteger(message[3]).toByteArray());
+				request.setTr(new byte[][] {	new BigInteger(message[4]).toByteArray(),
+												new BigInteger(message[5]).toByteArray(),
+												new BigInteger(message[6]).toByteArray(),
+												new BigInteger(message[7]).toByteArray(),
+												new BigInteger(message[8]).toByteArray()	});
+				String json = new Gson().toJson(request, WithdrawRequestJson.class);
+				
+				List<NameValuePair> values = new ArrayList<NameValuePair>();
+				values.add(new BasicNameValuePair("json", json));
+				String params = URLEncodedUtils.format(values, "UTF-8");
+				
+				connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+				connection.setRequestProperty("Content-Length", String.valueOf(params.getBytes().length));
+				
+				OutputStream out = connection.getOutputStream();
+				out.write(params.getBytes());
 				
 				byte[] buffer = new byte[1000000];
+				Log.d("Withdraw", "withdraw request with response code: " + connection.getResponseCode());
 				InputStream in = connection.getInputStream();
 				int bytes = in.read(buffer);
 				in.close();
 				
-				String json = new String(buffer, 0, bytes);
+				List<String> gotCookie = connection.getHeaderFields().get("Set-Cookie");
+				if(gotCookie != null)
+					for(String cookie : gotCookie)
+						this.cookie = cookie;
+				
+				json = new String(buffer, 0, bytes);
 				WithdrawChallengeJson challengeJson = new Gson().fromJson(json, WithdrawChallengeJson.class);
 				byte[][] challenge = challengeJson.getChallenges();
 				
@@ -81,11 +119,13 @@ public class WithdrawThread extends Thread {
 				return response;
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
-				callback.onRequestFailed();
+				Message handlerMessage = handler.obtainMessage(WithdrawHandler.STATE_REQUEST_FAILED);
+				handlerMessage.sendToTarget();
 				return null;
 			} catch (IOException e) {
 				e.printStackTrace();
-				callback.onRequestFailed();
+				Message handlerMessage = handler.obtainMessage(WithdrawHandler.STATE_REQUEST_FAILED);
+				handlerMessage.sendToTarget();
 				return null;
 			}
 		}
@@ -93,18 +133,37 @@ public class WithdrawThread extends Thread {
 		@Override
 		public String[] withdraw_solve(String[] message) {
 			try {
-				String query =	"?" + "solve" + "&" +
-								"sr=" + message[0];
-				URL url = new URL(Constants.MARKET_URL + query);
+				String query =	"?" + "option=solve";
+				URL url = new URL(Constants.WITHDRAW_URL + query);
 				HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+				connection.setDoOutput(true);
 				
-				Log.d("Withdraw", String.valueOf(connection.getResponseCode()));
+				WithdrawSolveJson solve = new WithdrawSolveJson();
+				solve.setSr(new byte[][] {	new BigInteger(message[0]).toByteArray(),
+											new BigInteger(message[1]).toByteArray(),
+											new BigInteger(message[2]).toByteArray(),
+											new BigInteger(message[3]).toByteArray(),
+											new BigInteger(message[4]).toByteArray()	});
+				String json = new Gson().toJson(solve, WithdrawSolveJson.class);
+				
+				List<NameValuePair> values = new ArrayList<NameValuePair>();
+				values.add(new BasicNameValuePair("json", json));
+				String params = URLEncodedUtils.format(values, "UTF-8");
+				
+				if(this.cookie != null && !this.cookie.equals("")) connection.setRequestProperty("Cookie", this.cookie);
+				
+				connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+				connection.setRequestProperty("Content-Length", String.valueOf(params.getBytes().length));
+				OutputStream out = connection.getOutputStream();
+				out.write(params.getBytes());
+				
 				byte[] buffer = new byte[1000000];
+				Log.d("Withdraw", "withdraw solve with response code: " + connection.getResponseCode());
 				InputStream in = connection.getInputStream();
 				int bytes = in.read(buffer);
 				in.close();
 				
-				String json = new String(buffer, 0, bytes);
+				json = new String(buffer, 0, bytes);
 				WithdrawWalletJson walletJson = new Gson().fromJson(json, WithdrawWalletJson.class);
 				byte[] serial = walletJson.getSerialComponent();
 				byte[] signature = walletJson.getSignature();
@@ -118,11 +177,13 @@ public class WithdrawThread extends Thread {
 				return response;
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
-				callback.onSolutionFailed();
+				Message handlerMessage = handler.obtainMessage(WithdrawHandler.STATE_SOLUTION_FAILED);
+				handlerMessage.sendToTarget();
 				return null;
 			} catch (IOException e) {
 				e.printStackTrace();
-				callback.onSolutionFailed();
+				Message handlerMessage = handler.obtainMessage(WithdrawHandler.STATE_SOLUTION_FAILED);
+				handlerMessage.sendToTarget();
 				return null;
 			}
 		}

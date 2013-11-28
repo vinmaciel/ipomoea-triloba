@@ -3,6 +3,7 @@ package br.usp.pcs.securetcg.client.market;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -18,6 +19,7 @@ import android.graphics.Matrix;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -58,6 +60,7 @@ public class MarketActivity extends Activity {
 	
 	/* Connection Objects */
 	private GetCardsFromMarketTask marketTask;
+	private Handler handler;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -197,34 +200,45 @@ public class MarketActivity extends Activity {
 
 		@Override
 		public boolean onMenuItemClick(MenuItem item) {
-			WithdrawCallback callback = new WithdrawCallback();
-			WithdrawThread withdraw = new WithdrawThread(selected, getApplicationContext(), callback);
-			withdraw.run();
+			handler = new CustomWithdrawHandler(MarketActivity.this);
+			WithdrawThread withdraw = new WithdrawThread(selected, getApplicationContext(), handler);
+			withdraw.start();
 			return false;
 		}
 		
 	}
 	
-	private class WithdrawCallback implements WithdrawThreadCallback {
+	private void progressUpdate(String message) {
+		progressText.setText(message);
+	}
+	
+	private static class CustomWithdrawHandler extends WithdrawHandler {
 
+		private WeakReference<MarketActivity> activity;
+		
+		CustomWithdrawHandler(MarketActivity activity) {
+			super();
+			this.activity = new WeakReference<MarketActivity>(activity);
+		}
+		
 		@Override
 		public void onStart() {
-			progressText.setText("Buying card");
+			activity.get().progressUpdate("Buying card");
 		}
 
 		@Override
 		public void onRequestFailed() {
-			progressText.setText("Unable to connect to mint");
+			activity.get().progressUpdate("Unable to connect to mint");
 		}
 
 		@Override
 		public void onSolutionFailed() {
-			progressText.setText("Unable to authenticate");
+			activity.get().progressUpdate("Unable to authenticate");
 		}
 
 		@Override
 		public void onWithdraw(Wallet wallet) {
-			progressText.setText("New card available");
+			activity.get().progressUpdate("New card available");
 			// TODO Auto-generated method stub
 		}
 		
@@ -249,8 +263,17 @@ public class MarketActivity extends Activity {
 				
 				byte[] buffer = new byte[1000000];
 				InputStream in = connection.getInputStream();
+				synchronized(this){
+					try {
+						this.wait(1000);
+					} catch (InterruptedException e) {}
+				}
 				int bytes = in.read(buffer);
-				
+				synchronized(this){
+					try {
+						this.wait(1000);
+					} catch (InterruptedException e) {}
+				}
 				String json = new String(buffer, 0, bytes);
 				MarketCardSetJson cardSetJson = new Gson().fromJson(json, MarketCardSetJson.class);
 				MarketCardJson[] cardJsons = cardSetJson.getCardSet();
