@@ -188,7 +188,7 @@ public class CLSign {
 					p = new BigInteger(sk.getP()),
 					q = n.divide(new BigInteger(sk.getP())),
 					z = new BigInteger(pk.getZ()),
-					b = new BigInteger(ck.getH()),
+					b = new BigInteger(pk.getS()),
 					m = new BigInteger(commitment);
 		
 		BigInteger	e = BigInteger.TEN;
