@@ -28,6 +28,7 @@
     <string name="market_start">Retrieving market information</string>
     <string name="market_finish">Retrieval complete</string>
     <string name="market_error">Unable to complete request</string>
+    <string name="market_withdraw">Requesting new card</string>
     
     <!-- Deck -->
     <string name="deck_manager_new">New Deck</string>

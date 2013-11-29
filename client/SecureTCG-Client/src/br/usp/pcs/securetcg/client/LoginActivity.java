@@ -1,17 +1,16 @@
 package br.usp.pcs.securetcg.client;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigInteger;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
 
 import android.accounts.Account;
@@ -21,7 +20,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 import br.usp.pcs.securetcg.client.market.Constants;
@@ -47,20 +45,26 @@ public class LoginActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		login.cancel(false);
-		try {
-			synchronized (this) {
-				this.wait(5000);
-			}
-		} catch (InterruptedException e) {}
 		super.onDestroy();
 	}
 	
 	private void loginSuccess() {
+		synchronized (this) {
+			try {
+				this.wait(2000);
+			} catch (InterruptedException e) {}
+		}
 		startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+		finish();
 	}
 	
 	private void loginFailed() {
 		Toast.makeText(this, "Unable to log in", Toast.LENGTH_LONG).show();
+		synchronized (this) {
+			try {
+				this.wait(2000);
+			} catch (InterruptedException e) {}
+		}
 		finish();
 	}
 	
@@ -89,6 +93,7 @@ public class LoginActivity extends Activity {
 				}
 				else {
 					publishProgress("Key found");
+					return null;
 				}
 			} catch(IOException e) {
 				publishProgress("Error");
@@ -105,21 +110,26 @@ public class LoginActivity extends Activity {
 			publishProgress("Authenticating before mint");
 			
 			try {
-				HttpClient client = new DefaultHttpClient();
-				HttpPost post = new HttpPost(Constants.REGISTRATION_URL);
-				List<NameValuePair> values = new ArrayList<NameValuePair>();
-				values.add(new BasicNameValuePair("name", name));
-				values.add(new BasicNameValuePair("pku", new BigInteger(pku.getGu()).toString()));
-				String s = values.toString();
-				Log.d("Login", s);
-				post.setEntity(new ByteArrayEntity(s.getBytes()));
-				HttpResponse response = client.execute(post);
-				Log.d("Login", "code: " + response.getStatusLine().getStatusCode());
-				if(response.getStatusLine().getStatusCode() != 200) {
-					throw new ClientProtocolException();
-				}
+				List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+				pairs.add(new BasicNameValuePair("name", name));
+				pairs.add(new BasicNameValuePair("pku", new BigInteger(pku.getGu()).toString()));
+				String values = URLEncodedUtils.format(pairs, "UTF-8");
 				
-				publishProgress("Done");
+				URL url = new URL(Constants.REGISTRATION_URL);
+				HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+				connection.setRequestMethod("POST");
+				connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+				connection.setRequestProperty("Content-Length", String.valueOf(values.getBytes().length));
+				
+				connection.setDoOutput(true);
+				OutputStream os = connection.getOutputStream();
+				os.write(values.getBytes());
+				os.close();
+				
+				if(connection.getResponseCode() == 200)
+					publishProgress("Done");
+				else
+					publishProgress("Error");
 			} catch (ClientProtocolException e) {
 				e.printStackTrace();
 				publishProgress("Error");
@@ -136,24 +146,13 @@ public class LoginActivity extends Activity {
 			super.onProgressUpdate(values);
 			progressText.setText(values[0]);
 			
-			if(progressText.equals("Done")) {
+			if(values[0].equals("Key found") || values[0].equals("Done")) {
 				loginSuccess();
 			}
 			
-			if(progressText.equals("Error")) {
+			if(values[0].equals("Error")) {
 				loginFailed();
 			}
-		}
-		
-		@Override
-		protected void onCancelled() {
-			try {
-				prefs.destroyKeys();
-			} catch (IOException e) {
-				publishProgress("Error");
-				e.printStackTrace();
-			}
-			super.onCancelled();
 		}
 	}
 }

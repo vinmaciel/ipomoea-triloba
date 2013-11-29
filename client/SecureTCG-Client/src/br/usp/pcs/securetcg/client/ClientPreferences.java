@@ -12,6 +12,7 @@ import android.content.Context;
 import br.usp.pcs.securetcg.client.utils.Constants;
 import br.usp.pcs.securetcg.library.clsign.CLPublicKey;
 import br.usp.pcs.securetcg.library.ecash.CompactEcash;
+import br.usp.pcs.securetcg.library.ecash.SystemParameter;
 import br.usp.pcs.securetcg.library.ecash.model.UPrivateKey;
 import br.usp.pcs.securetcg.library.ecash.model.UPublicKey;
 
@@ -140,6 +141,22 @@ public class ClientPreferences {
 			pkb = (CLPublicKey) ois.readObject();
 			ois.close();
 			fis.close();
+		} catch(FileNotFoundException e) {
+			SystemParameter par = SystemParameter.get();
+			pkb = new CLPublicKey();
+			pkb.setN(par.getN());
+			pkb.setS(par.getH());
+			pkb.setZ(par.getZ());
+			pkb.setR(new byte[][] {par.getG(0), par.getG(1), par.getG(2), par.getG(3), par.getG(4), par.getG(5)});
+			
+			String path = this.context.getFilesDir().getAbsolutePath();
+			path += "/" + Constants.BANK_PUBLIC_KEY;
+			
+			FileOutputStream fos = new FileOutputStream(path);
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			oos.writeObject(pkb);
+			oos.close();
+			fos.close();
 		} catch(IOException e) {
 			throw new IOException();
 		} catch (ClassNotFoundException e) {
