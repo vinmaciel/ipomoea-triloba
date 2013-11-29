@@ -1,27 +1,24 @@
-package br.usp.pcs.securetcg.server;
+package br.usp.pcs.securetcg.library.communication.json;
 
-import org.apache.struts.action.ActionForm;
+public class WithdrawRequestJson {
 
-public class WithdrawActionForm extends ActionForm {
-
-	private byte[] cardID;
-	private byte[] J;
+	private long cardID;
+	private long J;
 	private byte[] commitment;
 	private byte[] pku;
 	private byte[][] tr;
-	private byte[][] sr;
 	
-	public byte[] getCardID() {
+	public long getCardID() {
 		return cardID;
 	}
-	public void setCardID(byte[] cardID) {
+	public void setCardID(long cardID) {
 		this.cardID = cardID;
 	}
 	
-	public byte[] getJ() {
+	public long getJ() {
 		return J;
 	}
-	public void setJ(byte[] j) {
+	public void setJ(long j) {
 		J = j;
 	}
 	
@@ -46,10 +43,4 @@ public class WithdrawActionForm extends ActionForm {
 		this.tr = tr;
 	}
 	
-	public byte[][] getSr() {
-		return sr;
-	}
-	public void setSr(byte[][] sr) {
-		this.sr = sr;
-	}
 }

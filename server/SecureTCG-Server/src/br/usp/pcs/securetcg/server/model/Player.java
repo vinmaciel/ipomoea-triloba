@@ -17,7 +17,7 @@ public class Player {
 	@GeneratedValue(strategy=GenerationType.AUTO)
 	@Column(name="id")
 	private long id;
-	@Column(name="name", nullable=false)
+	@Column(name="name", nullable=false, unique=true)
 	private String name;
 	@Column(name="pku", nullable=false)
 	private byte[] pku;

@@ -1,5 +1,8 @@
 package br.usp.pcs.securetcg.library.ecash;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 
 import br.usp.pcs.securetcg.library.clsign.CLPrivateKey;
@@ -48,17 +51,52 @@ public class CompactEcash {
 	}
 	
 	/**
-	 * Generates the Bank key-pair.
+	 * Generates the Bank key-pair using unrestricted generators.
 	 * 
 	 * @param pkb bank public key.
 	 * @param skb bank private key.
 	 */
+	@Deprecated
 	public static void bKeyGen(CLPublicKey pkb, CLPrivateKey skb) {
 		SystemParameter par = SystemParameter.get();
-		//TODO fix residue size
-		CLSign.generateKeyPair(2*par.getK(), 3, pkb, skb);
+		CLSign.generateKeyPair(2*par.getK(), 7, pkb, skb);
 		
-		//TODO may generate two key pairs (sign wallet and enroll user)
+		//May generate two key pairs (sign wallet and enroll user) - won't emit certificates
+	}
+	
+	/**
+	 * Generates the default Bank key-pair.
+	 * This method doesn't generate the 
+	 * 
+	 * @param pkb bank public key.
+	 * @param skb bank private key.
+	 * @param path String that contains the path to the secure parameter stored in a sandbox.
+	 */
+	public static void bKeyGenDefault(CLPublicKey pkb, CLPrivateKey skb, String path) {
+		SystemParameter par = SystemParameter.get();
+
+		if(pkb == null) pkb = new CLPublicKey();
+		if(skb == null) skb = new CLPrivateKey();
+		
+		pkb.setN(par.getN());
+		pkb.setR(par.getG());
+		pkb.setS(par.getH());
+		pkb.setZ(par.getZ());
+		
+		byte[] key = null;
+		try {
+			byte[] buffer = new byte[par.getK()];
+			InputStream in = new FileInputStream(path);
+			int bytes = in.read(buffer);
+			in.close();
+			
+			key = new byte[bytes];
+			for(int i = 0; i < bytes; i++)
+				key[i] = buffer[i];
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		skb.setP(key);
 	}
 	
 	/**
@@ -79,10 +117,10 @@ public class CompactEcash {
 			u = new BigInteger(par.getK(), Prime.random);
 		} while(u.compareTo(new BigInteger(par.getP())) >= 0);
 		sku.setU(u.toByteArray());
-		//TODO is this really P (or N)?
+		//is this really P (or N)? it's P
 		pku.setGu((new BigInteger(par.getG(0))).modPow(u, new BigInteger(par.getP())).toByteArray());
 		
-		//TODO may need a certificate from B
+		//may need a certificate from B - won't be done
 	}
 	
 	/**
@@ -98,7 +136,8 @@ public class CompactEcash {
 	public static Wallet withdraw_UserSide(UPrivateKey sku, UPublicKey pku, ICommunication comm, BigInteger cardID) {
 		SystemParameter par = SystemParameter.get();
 		
-		BigInteger n = new BigInteger(par.getP());
+		BigInteger n = new BigInteger(par.getN());
+		BigInteger p = new BigInteger(par.getP());
 		
 		//selects mixed s' and user t randoms
 		BigInteger	_s, t;
@@ -111,7 +150,7 @@ public class CompactEcash {
 
 		//commits A' = PedCom(sku, s', t, x)
 		PedPublicKey ck = new PedPublicKey();
-		ck.setN(par.getP());
+		ck.setN(par.getN());
 		ck.setG(new byte[][] {par.getG(0), par.getG(1), par.getG(2)});
 		ck.setH(par.getG(4));
 		PedCommitment _A = PedCom.commit(par.getK(), new byte[][] {sku.getU(), _s.toByteArray(), t.toByteArray()}, ck);
@@ -129,7 +168,7 @@ public class CompactEcash {
 		tr[1] = new BigInteger(par.getG(1))	.modPow(rr[1], n);
 		tr[2] = new BigInteger(par.getG(2))	.modPow(rr[2], n);
 		tr[3] = new BigInteger(par.getG(4))	.modPow(rr[3], n);
-		tr[4] = new BigInteger(par.getG(0))	.modPow(rr[4], n);
+		tr[4] = new BigInteger(par.getG(0))	.modPow(rr[4], p);
 		
 		//sends the commitment to the bank, awaits challenges
 		String[] response = comm.withdraw_request(new String[] {	
@@ -150,11 +189,11 @@ public class CompactEcash {
 		
 		//solves the PK
 		BigInteger[] sr = new BigInteger[WALLET_PARAM_SIZE];
-		sr[0] = rr[0]	.subtract(challenge_cmt[0]	.multiply(new BigInteger(sku.getU())));
-		sr[1] = rr[1]	.subtract(challenge_cmt[0]	.multiply(_s));
-		sr[2] = rr[2]	.subtract(challenge_cmt[0]	.multiply(t));
-		sr[3] = rr[3]	.subtract(challenge_cmt[0]	.multiply(new BigInteger(_A.getT())));
-		sr[4] = rr[4]	.subtract(challenge_cmt[1]	.multiply(new BigInteger(sku.getU())));
+		sr[0] = rr[0]	.subtract(challenge_cmt[0]	.multiply( new BigInteger(sku.getU()) ));
+		sr[1] = rr[1]	.subtract(challenge_cmt[0]	.multiply( _s ));
+		sr[2] = rr[2]	.subtract(challenge_cmt[0]	.multiply( t ));
+		sr[3] = rr[3]	.subtract(challenge_cmt[0]	.multiply( new BigInteger(_A.getT()).mod(n) ));
+		sr[4] = rr[4]	.subtract(challenge_cmt[1]	.multiply( new BigInteger(sku.getU()) ));
 		
 		//sends the solution to the bank, awaits confirmation and the signature
 		response = comm.withdraw_solve(new String[] {
@@ -180,7 +219,6 @@ public class CompactEcash {
 		wallet.setT(t.toByteArray());
 		wallet.setX(_A.getT());
 		wallet.setQ(cardID.toByteArray());
-		//FIXME may be another value
 		wallet.setJ(BigInteger.ONE.toByteArray());
 		wallet.setSigA(signature.getA());
 		wallet.setSigE(signature.getE());
@@ -222,7 +260,8 @@ public class CompactEcash {
 	 * @param sr solution to challenge to prove knowledge of C' and sku.
 	 * @param challenge set of challenges for each proof.
 	 * @param sk bank private key skb.
-	 * @param pk bank public keu pkb.
+	 * @param pk bank public key pkb.
+	 * @param ck bank public key to commit ckb.
 	 * 
 	 * @return a set of {@link Object} containing 1 or 3 values: <br/>
 	 * <ul>
@@ -233,10 +272,11 @@ public class CompactEcash {
 	 */
 	public static Object[] withdraw_BankSide_Proof(BigInteger _A, BigInteger Gu, BigInteger J, BigInteger Q, 
 											BigInteger[] tr, BigInteger[] sr, BigInteger[] challenge,
-											CLPrivateKey sk, CLPublicKey pk) {
+											CLPrivateKey sk, CLPublicKey pk, PedPublicKey ck) {
 		SystemParameter par = SystemParameter.get();
 		
-		BigInteger n = new BigInteger(par.getP());
+		BigInteger n = new BigInteger(par.getN());
+		BigInteger p = new BigInteger(par.getP());
 		
 		if(tr == null || sr == null || challenge == null || tr.length != WALLET_PARAM_SIZE || sr.length != WALLET_PARAM_SIZE)
 			return new Object[] {false};
@@ -256,16 +296,16 @@ public class CompactEcash {
 							.multiply(new BigInteger(par.getG(4))	.modPow(sr[3], n));
 		
 		//verifies if T == G * A'^c
-		if(!T.equals(G.multiply(_A.modPow(challenge[0], n)).mod(n)))
+		if(!T.equals(G.multiply(_A.mod(n).modPow(challenge[0], n)).mod(n)))
 			return new Object[] {false};
 		
 		//computes T = t4
 		T = tr[4];
 		//computes G = g0^sr4
-		G = new BigInteger(par.getG(0)).modPow(sr[4], n);
+		G = new BigInteger(par.getG(0)).modPow(sr[4], p);
 		
 		//verifies if T == G * pku^cpk
-		if(!T.equals(G.multiply(Gu.modPow(challenge[1], n)).mod(n)))
+		if(!T.equals(G.multiply(Gu.modPow(challenge[1], p)).mod(p)))
 			return new Object[] {false};
 		
 		//generates s"
@@ -279,11 +319,6 @@ public class CompactEcash {
 				.multiply(new BigInteger(par.getG(1)).modPow(_s, n)).mod(n)
 				.multiply(new BigInteger(par.getG(3)).modPow(J, n)).mod(n)
 				.multiply(new BigInteger(par.getG(5)).modPow(Q, n)).mod(n);
-		
-		PedPublicKey ck = new PedPublicKey();
-		ck.setG(new byte[][] {par.getG(0), par.getG(1), par.getG(2), par.getG(3), par.getG(5)});
-		ck.setH(par.getG(4));
-		ck.setN(par.getP());
 		
 		//FIXME message size
 		CLSignature signature = CLSign.signBlind(A.toByteArray(), ck, A.toByteArray().length, pk, sk, par.getK());

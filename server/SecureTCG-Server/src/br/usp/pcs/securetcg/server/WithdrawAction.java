@@ -16,8 +16,12 @@ import br.usp.pcs.securetcg.library.clsign.CLPrivateKey;
 import br.usp.pcs.securetcg.library.clsign.CLPublicKey;
 import br.usp.pcs.securetcg.library.clsign.CLSignature;
 import br.usp.pcs.securetcg.library.communication.json.WithdrawChallengeJson;
+import br.usp.pcs.securetcg.library.communication.json.WithdrawRequestJson;
+import br.usp.pcs.securetcg.library.communication.json.WithdrawSolveJson;
 import br.usp.pcs.securetcg.library.communication.json.WithdrawWalletJson;
 import br.usp.pcs.securetcg.library.ecash.CompactEcash;
+import br.usp.pcs.securetcg.library.ecash.SystemParameter;
+import br.usp.pcs.securetcg.library.pedcom.PedPublicKey;
 
 import com.google.gson.Gson;
 
@@ -42,33 +46,39 @@ public class WithdrawAction extends Action {
 	 */
 	@Override
 	public ActionForward execute(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) {
-		WithdrawActionForm withdrawForm = (WithdrawActionForm) form;
-		HttpSession session = request.getSession();
+		GenericJsonForm withdrawForm = (GenericJsonForm) form;
 		
-		if(request.getMethod().equals("GET")) {
+		if(request.getMethod().equals("POST")) {
 			String option = request.getParameter("option");
 			
 			if(option.equals("request")) {
+				HttpSession session = request.getSession();
+				
 				//Parse form
-				session.setAttribute(SESSION_CARD_ID, withdrawForm.getCardID());
-				session.setAttribute(SESSION_WALLET_SIZE, withdrawForm.getJ());
-				session.setAttribute(SESSION_COMMITMENT, withdrawForm.getCommitment());
-				session.setAttribute(SESSION_PKU, withdrawForm.getPku());
-				session.setAttribute(SESSION_RANDOM_PROOF, withdrawForm.getTr());
+				String json = withdrawForm.getJson();
+				WithdrawRequestJson requestJson = new Gson().fromJson(json, WithdrawRequestJson.class);
+				session.setAttribute(SESSION_CARD_ID, new BigInteger(String.valueOf(requestJson.getCardID())));
+				session.setAttribute(SESSION_WALLET_SIZE, new BigInteger(String.valueOf(requestJson.getJ())));
+				session.setAttribute(SESSION_COMMITMENT, new BigInteger(requestJson.getCommitment()));
+				session.setAttribute(SESSION_PKU, new BigInteger(requestJson.getPku()));
+				byte[][] tr = requestJson.getTr();
+				BigInteger[] randomProof = new BigInteger[tr.length];
+				for(int i = 0; i < tr.length; i++)
+					randomProof[i] = new BigInteger(tr[i]);
+				session.setAttribute(SESSION_RANDOM_PROOF, randomProof);
 				
 				//Generate challenges
-				BigInteger[] challengeGen = CompactEcash.withdraw_BankSide_Challenge();
-				byte[][] challenge = new byte[challengeGen.length][];
-				for(int i = 0; i < challengeGen.length; i++) {
-					System.out.println("challenge " + i + ": " + challengeGen[i].toString());
-					challenge[i] = challengeGen[i].toByteArray();
-				}
+				BigInteger[] challenge = CompactEcash.withdraw_BankSide_Challenge();
 				session.setAttribute(SESSION_CHALLENGE, challenge);
+				
+				byte[][] challengeBytes = new byte[challenge.length][];
+				for(int i = 0; i < challenge.length; i++)
+					challengeBytes[i] = challenge[i].toByteArray();
 				
 				//Return JSON
 				WithdrawChallengeJson challengeJson = new WithdrawChallengeJson();
-				challengeJson.setChallenges(challenge);
-				String json = new Gson().toJson(challengeJson, WithdrawChallengeJson.class);
+				challengeJson.setChallenges(challengeBytes);
+				json = new Gson().toJson(challengeJson, WithdrawChallengeJson.class);
 				
 				try {
 					response.setContentType("application/json");
@@ -81,33 +91,39 @@ public class WithdrawAction extends Action {
 			}
 			
 			else if(option.equals("solve")) {
+				HttpSession session = request.getSession(false);
+				if(session == null) {
+					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					return null;
+				}
+				
+				ServerParameter serverPar = ServerParameter.get();
+				SystemParameter systemPar = SystemParameter.get();
+				BigInteger phiN = serverPar.getPhiN();
+				BigInteger p = new BigInteger(systemPar.getP());
+				CLPrivateKey sk = serverPar.getSkb();
+				CLPublicKey pk = serverPar.getPkb();
+				PedPublicKey ck = serverPar.getPedkb();
+				
+				//Parse form
+				String json = withdrawForm.getJson();
+				WithdrawSolveJson solveJson = new Gson().fromJson(json, WithdrawSolveJson.class);
+				byte[][] solution = solveJson.getSr();
+				BigInteger[] sr = new BigInteger[solution.length];
+				for(int i = 0; i < solution.length-1; i++)
+					sr[i] = new BigInteger(solution[i]).mod(phiN);
+				sr[solution.length-1] = new BigInteger(solution[solution.length-1]).mod(p.subtract(BigInteger.ONE));
+				
 				//Parse values
-				BigInteger	_A = new BigInteger((byte[]) session.getAttribute(SESSION_COMMITMENT)),
-							Gu = new BigInteger((byte[]) session.getAttribute(SESSION_PKU)),
-							J = new BigInteger((byte[]) session.getAttribute(SESSION_WALLET_SIZE)),
-							Q = new BigInteger((byte[]) session.getAttribute(SESSION_CARD_ID));
-				
-				byte[][]	rand = (byte[][]) session.getAttribute(SESSION_RANDOM_PROOF),
-							solution = withdrawForm.getSr(),
-							challengeSent = (byte[][]) session.getAttribute(SESSION_CHALLENGE);
-							
-				BigInteger[]	tr = new BigInteger[rand.length],
-								sr = new BigInteger[solution.length],
-								challenge = new BigInteger[challengeSent.length];
-				
-				for(int i = 0; i < tr.length; i++)
-					tr[i] = new BigInteger(rand[i]);
-				for(int i = 0; i < sr.length; i++)
-					sr[i] = new BigInteger(solution[i]);
-				for(int i = 0; i < challenge.length; i++)
-					challenge[i] = new BigInteger(challengeSent[i]);
-				
-				//TODO get public and private key
-				CLPrivateKey sk = new CLPrivateKey();
-				CLPublicKey pk = new CLPublicKey();
+				BigInteger	_A = (BigInteger) session.getAttribute(SESSION_COMMITMENT),
+							Gu = (BigInteger) session.getAttribute(SESSION_PKU),
+							J = (BigInteger) session.getAttribute(SESSION_WALLET_SIZE),
+							Q = (BigInteger) session.getAttribute(SESSION_CARD_ID);
+				BigInteger[]	tr = (BigInteger[]) session.getAttribute(SESSION_RANDOM_PROOF),
+								challenge = (BigInteger[]) session.getAttribute(SESSION_CHALLENGE);
 				
 				//Verify proof
-				Object[] proof = CompactEcash.withdraw_BankSide_Proof(_A, Gu, J, Q, tr, sr, challenge, sk, pk);
+				Object[] proof = CompactEcash.withdraw_BankSide_Proof(_A, Gu, J, Q, tr, sr, challenge, sk, pk, ck);
 				if(proof.length == 1 && !(boolean) proof[0]) {
 					response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
 					return null;
@@ -117,10 +133,11 @@ public class WithdrawAction extends Action {
 					CLSignature sig = (CLSignature) proof[2];
 					
 					WithdrawWalletJson walletJson = new WithdrawWalletJson();
-					walletJson.setSignature(sig.getA());
-					walletJson.setSignatureRandom(sig.getE());
+					walletJson.setSignatureA(sig.getA());
+					walletJson.setSignatureE(sig.getE());
+					walletJson.setSignatureV(sig.getV());
 					walletJson.setSerialComponent(_s.toByteArray());
-					String json = new Gson().toJson(walletJson, WithdrawWalletJson.class);
+					json = new Gson().toJson(walletJson, WithdrawWalletJson.class);
 					
 					try {
 						response.setContentType("application/json");
