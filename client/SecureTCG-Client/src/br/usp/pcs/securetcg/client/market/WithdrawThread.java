@@ -19,12 +19,16 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import br.usp.pcs.securetcg.client.ClientPreferences;
+import br.usp.pcs.securetcg.library.clsign.CLPublicKey;
+import br.usp.pcs.securetcg.library.clsign.CLSign;
+import br.usp.pcs.securetcg.library.clsign.CLSignature;
 import br.usp.pcs.securetcg.library.communication.ICommunication;
 import br.usp.pcs.securetcg.library.communication.json.WithdrawChallengeJson;
 import br.usp.pcs.securetcg.library.communication.json.WithdrawRequestJson;
 import br.usp.pcs.securetcg.library.communication.json.WithdrawSolveJson;
 import br.usp.pcs.securetcg.library.communication.json.WithdrawWalletJson;
 import br.usp.pcs.securetcg.library.ecash.CompactEcash;
+import br.usp.pcs.securetcg.library.ecash.SystemParameter;
 import br.usp.pcs.securetcg.library.ecash.model.UPrivateKey;
 import br.usp.pcs.securetcg.library.ecash.model.UPublicKey;
 import br.usp.pcs.securetcg.library.ecash.model.Wallet;
@@ -51,11 +55,19 @@ public class WithdrawThread extends Thread {
 		message.sendToTarget();
 		
 		try {
-			UPrivateKey pku = prefs.getPrivateKey();
-			UPublicKey sku = prefs.getPublicKey();
+			UPrivateKey sku = prefs.getPrivateKey();
+			UPublicKey pku = prefs.getPublicKey();
 			
-			Wallet wallet = CompactEcash.withdraw_UserSide(pku, sku, new WithdrawCommunication(), new BigInteger(String.valueOf(this.cardID)));
-
+			Wallet wallet = CompactEcash.withdraw_UserSide(sku, pku, new WithdrawCommunication(), new BigInteger(String.valueOf(this.cardID)));
+			
+			SystemParameter par = SystemParameter.get();
+			CLSignature sig = new CLSignature();
+			sig.setA(wallet.getSigA());
+			sig.setE(wallet.getSigE());
+			sig.setV(wallet.getSigV());
+			CLPublicKey pkb = prefs.getBankKey();
+			Log.d("Wallet",  "" + CLSign.verify(new byte[][] {sku.getU(), wallet.getS(), wallet.getT(), wallet.getJ(), wallet.getX(), wallet.getQ()}, sig, pkb) );
+			
 			message = handler.obtainMessage(WithdrawHandler.STATE_DONE, 0, 0, wallet);
 			message.sendToTarget();
 		} catch(IOException e) {
@@ -73,6 +85,13 @@ public class WithdrawThread extends Thread {
 				String query = "?" + "option=request";
 				URL url = new URL(Constants.WITHDRAW_URL + query);
 				HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+				
+				synchronized(this){
+					try {
+						this.wait(1000);
+					} catch (InterruptedException e) {}
+				}
+				
 				connection.setDoOutput(true);
 				
 				WithdrawRequestJson request = new WithdrawRequestJson();
@@ -97,9 +116,19 @@ public class WithdrawThread extends Thread {
 				OutputStream out = connection.getOutputStream();
 				out.write(params.getBytes());
 				
+				int responseCode = connection.getResponseCode();
+				Log.d("Withdraw", "withdraw request with response code: " + responseCode);
+				if(responseCode != 202) throw new IOException();
+				
 				byte[] buffer = new byte[1000000];
-				Log.d("Withdraw", "withdraw request with response code: " + connection.getResponseCode());
 				InputStream in = connection.getInputStream();
+				
+				synchronized(this){
+					try {
+						this.wait(2500);
+					} catch (InterruptedException e) {}
+				}
+				
 				int bytes = in.read(buffer);
 				in.close();
 				
@@ -136,6 +165,13 @@ public class WithdrawThread extends Thread {
 				String query =	"?" + "option=solve";
 				URL url = new URL(Constants.WITHDRAW_URL + query);
 				HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+				
+				synchronized(this){
+					try {
+						this.wait(1000);
+					} catch (InterruptedException e) {}
+				}
+				
 				connection.setDoOutput(true);
 				
 				WithdrawSolveJson solve = new WithdrawSolveJson();
@@ -157,34 +193,51 @@ public class WithdrawThread extends Thread {
 				OutputStream out = connection.getOutputStream();
 				out.write(params.getBytes());
 				
+				int responseCode = connection.getResponseCode();
+				Log.d("Withdraw", "withdraw request with response code: " + responseCode);
+				if(responseCode != 200) throw new IOException();
+				
 				byte[] buffer = new byte[1000000];
-				Log.d("Withdraw", "withdraw solve with response code: " + connection.getResponseCode());
 				InputStream in = connection.getInputStream();
+				
+				synchronized(this){
+					try {
+						this.wait(2500);
+					} catch (InterruptedException e) {}
+				}
+				
 				int bytes = in.read(buffer);
 				in.close();
+				
+				if(bytes == -1)	{
+					throw new IOException();
+				}
 				
 				json = new String(buffer, 0, bytes);
 				WithdrawWalletJson walletJson = new Gson().fromJson(json, WithdrawWalletJson.class);
 				byte[] serial = walletJson.getSerialComponent();
-				byte[] signature = walletJson.getSignature();
-				byte[] sigRandom = walletJson.getSignatureRandom();
+				byte[] sigA = walletJson.getSignatureA();
+				byte[] sigE = walletJson.getSignatureE();
+				byte[] sigV = walletJson.getSignatureV();
 				
-				String[] response = new String[3];
-				response[0] = new BigInteger(signature).toString();
-				response[1] = new BigInteger(sigRandom).toString();
-				response[2] = new BigInteger(serial).toString();
+				String[] response = new String[5];
+				response[0] = String.valueOf(true);
+				response[1] = new BigInteger(serial).toString();
+				response[2] = new BigInteger(sigA).toString();
+				response[3] = new BigInteger(sigE).toString();
+				response[4] = new BigInteger(sigV).toString();
 				
 				return response;
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 				Message handlerMessage = handler.obtainMessage(WithdrawHandler.STATE_SOLUTION_FAILED);
 				handlerMessage.sendToTarget();
-				return null;
+				return new String[] {String.valueOf(false)};
 			} catch (IOException e) {
 				e.printStackTrace();
 				Message handlerMessage = handler.obtainMessage(WithdrawHandler.STATE_SOLUTION_FAILED);
 				handlerMessage.sendToTarget();
-				return null;
+				return new String[] {String.valueOf(false)};
 			}
 		}
 		

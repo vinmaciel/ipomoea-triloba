@@ -261,19 +261,22 @@ public class MarketActivity extends Activity {
 				URL url = new URL(Constants.MARKET_URL + query);
 				HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 				
+				synchronized(this){
+					try {
+						this.wait(1000);
+					} catch (InterruptedException e) {}
+				}
+				
 				byte[] buffer = new byte[1000000];
 				InputStream in = connection.getInputStream();
+				
 				synchronized(this){
 					try {
-						this.wait(1000);
+						this.wait(2500);
 					} catch (InterruptedException e) {}
 				}
+				
 				int bytes = in.read(buffer);
-				synchronized(this){
-					try {
-						this.wait(1000);
-					} catch (InterruptedException e) {}
-				}
 				String json = new String(buffer, 0, bytes);
 				MarketCardSetJson cardSetJson = new Gson().fromJson(json, MarketCardSetJson.class);
 				MarketCardJson[] cardJsons = cardSetJson.getCardSet();

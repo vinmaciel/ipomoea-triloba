@@ -40,6 +40,10 @@ public class ServerParameter {
 		this.skb = skbTemp;
 		this.pkb = pkbTemp;
 		this.pedkb = pedkbTemp;
+		
+		this.n = new BigInteger(pars.getN());
+		this.phiN = new BigInteger(this.pkb.getN()).divide(new BigInteger(this.skb.getP())).subtract(BigInteger.ONE)
+				.multiply( new BigInteger(this.skb.getP()).subtract(BigInteger.ONE) );
 	}
 	
 	private static ServerParameter instance = null;
@@ -56,6 +60,9 @@ public class ServerParameter {
 	private final CLPublicKey pkb;
 	
 	private final PedPublicKey pedkb;
+	
+	private final BigInteger n;
+	private final BigInteger phiN;
 
 	public CLPrivateKey getSkb() {
 		return skb;
@@ -68,4 +75,13 @@ public class ServerParameter {
 	public PedPublicKey getPedkb() {
 		return pedkb;
 	}
+
+	public BigInteger getN() {
+		return n;
+	}
+
+	public BigInteger getPhiN() {
+		return phiN;
+	}
+	
 }

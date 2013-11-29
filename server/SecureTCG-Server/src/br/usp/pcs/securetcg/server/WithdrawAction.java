@@ -20,6 +20,7 @@ import br.usp.pcs.securetcg.library.communication.json.WithdrawRequestJson;
 import br.usp.pcs.securetcg.library.communication.json.WithdrawSolveJson;
 import br.usp.pcs.securetcg.library.communication.json.WithdrawWalletJson;
 import br.usp.pcs.securetcg.library.ecash.CompactEcash;
+import br.usp.pcs.securetcg.library.ecash.SystemParameter;
 import br.usp.pcs.securetcg.library.pedcom.PedPublicKey;
 
 import com.google.gson.Gson;
@@ -96,13 +97,22 @@ public class WithdrawAction extends Action {
 					return null;
 				}
 				
+				ServerParameter serverPar = ServerParameter.get();
+				SystemParameter systemPar = SystemParameter.get();
+				BigInteger phiN = serverPar.getPhiN();
+				BigInteger p = new BigInteger(systemPar.getP());
+				CLPrivateKey sk = serverPar.getSkb();
+				CLPublicKey pk = serverPar.getPkb();
+				PedPublicKey ck = serverPar.getPedkb();
+				
 				//Parse form
 				String json = withdrawForm.getJson();
 				WithdrawSolveJson solveJson = new Gson().fromJson(json, WithdrawSolveJson.class);
 				byte[][] solution = solveJson.getSr();
 				BigInteger[] sr = new BigInteger[solution.length];
-				for(int i = 0; i < solution.length; i++)
-					sr[i] = new BigInteger(solution[i]);
+				for(int i = 0; i < solution.length-1; i++)
+					sr[i] = new BigInteger(solution[i]).mod(phiN);
+				sr[solution.length-1] = new BigInteger(solution[solution.length-1]).mod(p.subtract(BigInteger.ONE));
 				
 				//Parse values
 				BigInteger	_A = (BigInteger) session.getAttribute(SESSION_COMMITMENT),
@@ -111,11 +121,6 @@ public class WithdrawAction extends Action {
 							Q = (BigInteger) session.getAttribute(SESSION_CARD_ID);
 				BigInteger[]	tr = (BigInteger[]) session.getAttribute(SESSION_RANDOM_PROOF),
 								challenge = (BigInteger[]) session.getAttribute(SESSION_CHALLENGE);
-				
-				ServerParameter par = ServerParameter.get();
-				CLPrivateKey sk = par.getSkb();
-				CLPublicKey pk = par.getPkb();
-				PedPublicKey ck = par.getPedkb();
 				
 				//Verify proof
 				Object[] proof = CompactEcash.withdraw_BankSide_Proof(_A, Gu, J, Q, tr, sr, challenge, sk, pk, ck);
@@ -128,8 +133,9 @@ public class WithdrawAction extends Action {
 					CLSignature sig = (CLSignature) proof[2];
 					
 					WithdrawWalletJson walletJson = new WithdrawWalletJson();
-					walletJson.setSignature(sig.getA());
-					walletJson.setSignatureRandom(sig.getE());
+					walletJson.setSignatureA(sig.getA());
+					walletJson.setSignatureE(sig.getE());
+					walletJson.setSignatureV(sig.getV());
 					walletJson.setSerialComponent(_s.toByteArray());
 					json = new Gson().toJson(walletJson, WithdrawWalletJson.class);
 					
