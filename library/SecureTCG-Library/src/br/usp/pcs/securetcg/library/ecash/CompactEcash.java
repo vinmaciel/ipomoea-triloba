@@ -328,7 +328,11 @@ public class CompactEcash {
 		return new Object[] {true, _s, signature};
 	}
 	
-	public static boolean Spend() {
+	public static boolean Spend_SpenderSide() {
+		return false;
+	}
+	
+	public static boolean Spend_ReceiverSide() {
 		return false;
 	}
 	
