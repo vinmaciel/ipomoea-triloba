@@ -1,5 +1,6 @@
 package br.usp.pcs.securetcg.library.ecash.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Coin {
@@ -26,6 +27,8 @@ public class Coin {
 		this.properties = properties;
 	}
 	public void addProperty(CoinProperty property) {
+		if(this.properties == null)
+			properties = new ArrayList<CoinProperty>();
 		this.properties.add(property);
 	}
 	
@@ -36,6 +39,8 @@ public class Coin {
 		this.history = history;
 	}
 	public void addEventToHistory(byte[] event) {
+		if(this.history == null)
+			this.history = new ArrayList<byte[]>();
 		this.history.add(event);
 	}
 	
