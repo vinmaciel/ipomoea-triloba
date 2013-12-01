@@ -22,29 +22,19 @@ public class CardDAO extends DatabaseHandler {
 	}
 	
 	public void add(Card card) {
+		CardClassDAO cardClassDAO = new CardClassDAO(context);
+		if(cardClassDAO.get(card.getClassID()) == null) {
+			cardClassDAO.add(card.getCardClass());
+		}
+		
 		SQLiteDatabase db = this.getWritableDatabase();
 		
-		db.beginTransaction();
-		try {
-			long classID = card.getClassID();
-			
-			CardClassDAO cardClassDAO = new CardClassDAO(context);
-			if(cardClassDAO.get(classID) == null) {
-				cardClassDAO.add(card.getCardClass());
-			}
-			
-			ContentValues values = new ContentValues();
-			values.put(CARD_SERIAL, card.getSerial());
-			values.put(CARD_ID_CLASS, card.getClassID());
-			
-			card.setId( db.insert(TABLE_CARD, null, values) );
-			card.setProperties(new LinkedList<CardProperty>());
-			
-			db.setTransactionSuccessful();
-		}
-		finally {
-			db.endTransaction();
-		}
+		ContentValues values = new ContentValues();
+		values.put(CARD_SERIAL, card.getSerial());
+		values.put(CARD_ID_CLASS, card.getClassID());
+		
+		card.setId( db.insert(TABLE_CARD, null, values) );
+		card.setProperties(new LinkedList<CardProperty>());
 		
 		db.close();
 	}
@@ -62,36 +52,45 @@ public class CardDAO extends DatabaseHandler {
 								CARD_ID + "=?", 
 								new String[] {String.valueOf(id)}, 
 								null, null, null, null	);
+
+		Card card = null;
+		if(cursor != null && cursor.moveToFirst()) {
+			card = new Card();
+			card.setId(cursor.getLong(0));
+			card.setSerial(cursor.getBlob(1));
+			
+			CardClass cardClass = new CardClass();
+			cardClass.setId(cursor.getLong(2));
+			cardClass.setName(cursor.getString(3));
+			cardClass.setDescription(cursor.getString(4));
+			cardClass.setBitmapPath(cursor.getString(5));
+			
+			card.setCardClass(cardClass);
 		
-		if(cursor != null) cursor.moveToFirst();
-		
-		Card card = new Card();
-		card.setId(cursor.getLong(0));
-		card.setSerial(cursor.getBlob(1));
-		
-		CardClass cardClass = new CardClass();
-		cardClass.setId(cursor.getLong(2));
-		cardClass.setName(cursor.getString(3));
-		cardClass.setDescription(cursor.getString(4));
-		cardClass.setBitmapPath(cursor.getString(5));
-		
-		card.setCardClass(cardClass);
-		
-		Cursor propertiesCursor = db.query(	TABLE_PROPERTY,
-										new String[] {PROPERTY_ID, PROPERTY_TAG, PROPERTY_R, PROPERTY_INFO},
-										PROPERTY_ID_CARD + "=?",
-										new String[] {String.valueOf(id)},
-										null, null, null, null);
-		
-		List<CardProperty> properties = new LinkedList<CardProperty>();
-		if(propertiesCursor != null && propertiesCursor.moveToFirst()) {
-			do{
-				CardPropertyDAO propertyDAO = new CardPropertyDAO(context);
-				CardProperty property = propertyDAO.get(propertiesCursor.getLong(0));
-				properties.add(property);
-			} while(propertiesCursor.moveToNext());
+			Cursor propertiesCursor = db.query(	TABLE_PROPERTY,
+											new String[] {PROPERTY_ID, PROPERTY_TAG, PROPERTY_R, PROPERTY_INFO},
+											PROPERTY_ID_CARD + "=?",
+											new String[] {String.valueOf(id)},
+											null, null, null, null);
+			
+			List<CardProperty> properties = new LinkedList<CardProperty>();
+			if(propertiesCursor != null && propertiesCursor.moveToFirst()) {
+				do{
+					CardProperty property = new CardProperty();
+					property.setId(propertiesCursor.getLong(0));
+					property.setTag(propertiesCursor.getBlob(1));
+					property.setR(propertiesCursor.getBlob(2));
+					property.setInfo(propertiesCursor.getBlob(3));
+					
+					properties.add(property);
+				} while(propertiesCursor.moveToNext());
+				
+				propertiesCursor.close();
+			}
+			card.setProperties(properties);
+			
+			cursor.close();
 		}
-		card.setProperties(properties);
 		
 		db.close();
 		
@@ -135,16 +134,24 @@ public class CardDAO extends DatabaseHandler {
 				List<CardProperty> properties = new LinkedList<CardProperty>();
 				if(propertiesCursor != null && propertiesCursor.moveToFirst()) {
 					do{
-						CardPropertyDAO propertyDAO = new CardPropertyDAO(context);
-						CardProperty property = propertyDAO.get(propertiesCursor.getLong(0));
+						CardProperty property = new CardProperty();
+						property.setId(propertiesCursor.getLong(0));
+						property.setTag(propertiesCursor.getBlob(1));
+						property.setR(propertiesCursor.getBlob(2));
+						property.setInfo(propertiesCursor.getBlob(3));
+						
 						properties.add(property);
 					} while(propertiesCursor.moveToNext());
 				}
 				card.setProperties(properties);
 				
+				propertiesCursor.close();
+				
 				cards.add(card);
 			} while(cursor.moveToNext());
 		}
+		
+		cursor.close();
 		
 		db.close();
 		
@@ -152,29 +159,19 @@ public class CardDAO extends DatabaseHandler {
 	}
 	
 	public void update(Card card) {
+		CardClassDAO cardClassDAO = new CardClassDAO(context);
+		if(cardClassDAO.get(card.getClassID()) == null) {
+			cardClassDAO.add(card.getCardClass());
+		}
+		
 		SQLiteDatabase db = this.getWritableDatabase();
 		
-		db.beginTransaction();
-		try {
-			long classID = card.getClassID();
-			
-			CardClassDAO cardClassDAO = new CardClassDAO(context);
-			if(cardClassDAO.get(classID) == null) {
-				cardClassDAO.add(card.getCardClass());
-			}
-			
-			ContentValues values = new ContentValues();
-			values.put(CARD_ID, card.getId());
-			values.put(CARD_SERIAL, card.getSerial());
-			values.put(CARD_ID_CLASS, card.getClassID());
-
-			db.update(TABLE_CARD, values, CARD_ID + "=?" , new String[] {String.valueOf(card.getId())});
-			
-			db.setTransactionSuccessful();
-		}
-		finally {
-			db.endTransaction();
-		}
+		ContentValues values = new ContentValues();
+		values.put(CARD_ID, card.getId());
+		values.put(CARD_SERIAL, card.getSerial());
+		values.put(CARD_ID_CLASS, card.getClassID());
+		
+		db.update(TABLE_CARD, values, CARD_ID + "=?" , new String[] {String.valueOf(card.getId())});
 		
 		db.close();
 	}
@@ -210,13 +207,13 @@ public class CardDAO extends DatabaseHandler {
 	}
 	
 	public void removeProperty(Card card, CardProperty property) {
-		SQLiteDatabase db = this.getWritableDatabase();
-		
 		CardPropertyDAO propertyDAO = new CardPropertyDAO(context);
 		if(this.get(card.getId()) == null)
 			throw new SQLiteException("Cannot find card");
 		if(propertyDAO.get(property.getId()) == null)
 			throw new SQLiteException("Cannot find property");
+		
+		SQLiteDatabase db = this.getWritableDatabase();
 		
 		ContentValues values = new ContentValues();
 		values.put(PROPERTY_ID, property.getInfo());

@@ -22,7 +22,7 @@ public abstract class WithdrawHandler extends Handler {
 	
 	public abstract void onSolutionFailed();
 	
-	public abstract void onWithdraw(Coin coin);
+	public abstract void onWithdraw(Coin coin, long cardID);
 	
 	public abstract void onVerifyError();
 	
@@ -39,7 +39,7 @@ public abstract class WithdrawHandler extends Handler {
 			onSolutionFailed();
 			break;
 		case STATE_DONE:
-			onWithdraw((Coin) message.obj);
+			onWithdraw((Coin) ( (Object[]) message.obj )[0], (Long) ( (Object[]) message.obj )[1]);
 			break;
 		case STATE_SIGNATURE_ERROR:
 			onVerifyError();

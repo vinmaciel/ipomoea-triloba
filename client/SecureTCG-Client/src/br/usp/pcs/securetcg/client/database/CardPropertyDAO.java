@@ -23,7 +23,7 @@ public class CardPropertyDAO extends DatabaseHandler {
 		values.put(PROPERTY_R, property.getR());
 		values.put(PROPERTY_INFO, property.getInfo());
 		
-		property.setId( db.insert(TABLE_DECK, null, values) );
+		property.setId( db.insert(TABLE_PROPERTY, null, values) );
 		
 		db.close();
 	}
@@ -40,13 +40,16 @@ public class CardPropertyDAO extends DatabaseHandler {
 								new String[] {String.valueOf(id)},
 								null, null, null, null);
 		
-		if(cursor != null) cursor.moveToFirst();
-		
-		CardProperty property = new CardProperty();
-		property.setId(cursor.getLong(0));
-		property.setTag(cursor.getBlob(1));
-		property.setR(cursor.getBlob(2));
-		property.setInfo(cursor.getBlob(3));
+		CardProperty property = null;
+		if(cursor != null && cursor.moveToFirst()) {
+			property = new CardProperty();
+			property.setId(cursor.getLong(0));
+			property.setTag(cursor.getBlob(1));
+			property.setR(cursor.getBlob(2));
+			property.setInfo(cursor.getBlob(3));
+			
+			cursor.close();
+		}
 		
 		db.close();
 		
@@ -75,6 +78,8 @@ public class CardPropertyDAO extends DatabaseHandler {
 				
 				properties.add(property);
 			} while(cursor.moveToNext());
+			
+			cursor.close();
 		}
 		
 		db.close();

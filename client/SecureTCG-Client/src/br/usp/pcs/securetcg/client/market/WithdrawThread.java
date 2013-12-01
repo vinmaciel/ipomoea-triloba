@@ -73,7 +73,7 @@ public class WithdrawThread extends Thread {
 			
 			Coin coin = CompactEcash.spend_Wallet(sku, pku, wallet);
 			
-			message = handler.obtainMessage(WithdrawHandler.STATE_DONE, 0, 0, coin);
+			message = handler.obtainMessage(WithdrawHandler.STATE_DONE, 0, 0, new Object[] {coin, cardID});
 			message.sendToTarget();
 		} catch(IOException e) {
 			
