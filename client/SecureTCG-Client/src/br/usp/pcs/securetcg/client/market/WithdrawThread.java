@@ -240,6 +240,11 @@ public class WithdrawThread extends Thread {
 				return new String[] {String.valueOf(false)};
 			}
 		}
+
+		@Override
+		public String[] spend_request(String[] message) {
+			return null;
+		}
 		
 	}
 	
