@@ -334,7 +334,7 @@ public class CompactEcash {
 		return new Object[] {true, _s, signature};
 	}
 	
-	public static Coin Spend_Wallet(UPrivateKey sku, UPublicKey pku, Wallet wallet) {
+	public static Coin spend_Wallet(UPrivateKey sku, UPublicKey pku, Wallet wallet) {
 		SystemParameter par = SystemParameter.get();
 		
 		BigInteger	n = new BigInteger( par.getP() );
@@ -379,7 +379,7 @@ public class CompactEcash {
 		return coin;
 	}
 	
-	public static boolean Spend_SpenderSide(UPrivateKey sku, UPublicKey pku, ICommunication comm) {
+	public static boolean spend_SpenderSide(UPrivateKey sku, UPublicKey pku, ICommunication comm) {
 		SystemParameter par = SystemParameter.get();
 		
 		BigInteger	n = new BigInteger( par.getP() );
@@ -413,7 +413,7 @@ public class CompactEcash {
 		return false;
 	}
 	
-	public static boolean Spend_ReceiverSide_Key() {
+	public static boolean spend_ReceiverSide_Key() {
 		return false;
 	}
 	

@@ -1,8 +1,12 @@
 package br.usp.pcs.securetcg.client.model;
 
 import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.List;
 
-public class Card implements Serializable {
+import br.usp.pcs.securetcg.library.ecash.model.Coin;
+
+public class Card extends Coin implements Serializable {
 
 	private static final long serialVersionUID = 8781132184531968399L;
 
@@ -13,8 +17,7 @@ public class Card implements Serializable {
 	private long id;
 	private CardClass cardClass;
 	
-	private byte[] serial;
-	private byte[] properties;
+	private List<CardProperty> properties;
 	
 	
 	public long getId() {
@@ -24,6 +27,25 @@ public class Card implements Serializable {
 		this.id = id;
 	}
 
+	@Override
+	public List<CardProperty> getProperties() {
+		return properties;
+	}
+	public CardProperty getProperty(int index) {
+		return properties.get(index);
+	}
+	@Override
+	@SuppressWarnings("unchecked")
+	public void setProperties(List<?> properties) {
+		this.properties = (List<CardProperty>) properties;
+	}
+	public void addProperty(CardProperty property) {
+		if(this.properties == null)
+			this.properties = new LinkedList<CardProperty>();
+		this.properties.add(property);
+	}
+	
+	
 	public String getName() {
 		return this.cardClass.getName();
 	}
@@ -45,20 +67,6 @@ public class Card implements Serializable {
 		this.cardClass.setBitmapPath(bitmapPath);
 	}
 	
-	
-	public byte[] getSerial() {
-		return serial;
-	}
-	public void setSerial(byte[] serial) {
-		this.serial = serial;
-	}
-	
-	public byte[] getProperties() {
-		return properties;
-	}
-	public void setProperties(byte[] properties) {
-		this.properties = properties;
-	}
 	
 	public long getClassID() {
 		return cardClass.getId();

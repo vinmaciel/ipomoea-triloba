@@ -7,8 +7,10 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import br.usp.pcs.securetcg.client.model.Card;
 import br.usp.pcs.securetcg.client.model.CardClass;
+import br.usp.pcs.securetcg.client.model.CardProperty;
 
 public class CardDAO extends DatabaseHandler {
 
@@ -33,10 +35,10 @@ public class CardDAO extends DatabaseHandler {
 			
 			ContentValues values = new ContentValues();
 			values.put(CARD_SERIAL, card.getSerial());
-			values.put(CARD_PROPERTIES, card.getProperties());
 			values.put(CARD_ID_CLASS, card.getClassID());
 			
 			card.setId( db.insert(TABLE_CARD, null, values) );
+			card.setProperties(new LinkedList<CardProperty>());
 			
 			db.setTransactionSuccessful();
 		}
@@ -47,13 +49,13 @@ public class CardDAO extends DatabaseHandler {
 		db.close();
 	}
 	
-	public Card get(long id) { 
+	public Card get(long id) {
 		SQLiteDatabase db = this.getReadableDatabase();
 		
 		Cursor cursor = db.query(	TABLE_CARD + " INNER JOIN " + TABLE_CLASS + 
 								" ON " + TABLE_CARD + "." + CARD_ID_CLASS + "=" + TABLE_CLASS + "." + CLASS_ID, 
 								new String[] {
-									TABLE_CARD + "." + CARD_ID, TABLE_CARD + "." + CARD_SERIAL, TABLE_CARD + "." + CARD_PROPERTIES,
+									TABLE_CARD + "." + CARD_ID, TABLE_CARD + "." + CARD_SERIAL,
 									TABLE_CLASS + "." + CLASS_ID, TABLE_CLASS + "." + CLASS_NAME, 
 									TABLE_CLASS + "." + CLASS_DESCRIPTION, TABLE_CLASS + "." + CLASS_BITMAP_PATH
 								}, 
@@ -66,15 +68,30 @@ public class CardDAO extends DatabaseHandler {
 		Card card = new Card();
 		card.setId(cursor.getLong(0));
 		card.setSerial(cursor.getBlob(1));
-		card.setProperties(cursor.getBlob(2));
 		
 		CardClass cardClass = new CardClass();
-		cardClass.setId(cursor.getLong(3));
-		cardClass.setName(cursor.getString(4));
-		cardClass.setDescription(cursor.getString(5));
-		cardClass.setBitmapPath(cursor.getString(6));
+		cardClass.setId(cursor.getLong(2));
+		cardClass.setName(cursor.getString(3));
+		cardClass.setDescription(cursor.getString(4));
+		cardClass.setBitmapPath(cursor.getString(5));
 		
 		card.setCardClass(cardClass);
+		
+		Cursor propertiesCursor = db.query(	TABLE_PROPERTY,
+										new String[] {PROPERTY_ID, PROPERTY_TAG, PROPERTY_R, PROPERTY_INFO},
+										PROPERTY_ID_CARD + "=?",
+										new String[] {String.valueOf(id)},
+										null, null, null, null);
+		
+		List<CardProperty> properties = new LinkedList<CardProperty>();
+		if(propertiesCursor != null && propertiesCursor.moveToFirst()) {
+			do{
+				CardPropertyDAO propertyDAO = new CardPropertyDAO(context);
+				CardProperty property = propertyDAO.get(propertiesCursor.getLong(0));
+				properties.add(property);
+			} while(propertiesCursor.moveToNext());
+		}
+		card.setProperties(properties);
 		
 		db.close();
 		
@@ -87,7 +104,7 @@ public class CardDAO extends DatabaseHandler {
 		Cursor cursor = db.query(	TABLE_CARD + " INNER JOIN " + TABLE_CLASS + 
 								" ON " + TABLE_CARD + "." + CARD_ID_CLASS + "=" + TABLE_CLASS + "." + CLASS_ID, 
 								new String[] {
-									TABLE_CARD + "." + CARD_ID, TABLE_CARD + "." + CARD_SERIAL, TABLE_CARD + "." + CARD_PROPERTIES,
+									TABLE_CARD + "." + CARD_ID, TABLE_CARD + "." + CARD_SERIAL,
 									TABLE_CLASS + "." + CLASS_ID, TABLE_CLASS + "." + CLASS_NAME, 
 									TABLE_CLASS + "." + CLASS_DESCRIPTION, TABLE_CLASS + "." + CLASS_BITMAP_PATH
 								},  
@@ -97,23 +114,39 @@ public class CardDAO extends DatabaseHandler {
 		
 		if(cursor != null && cursor.moveToFirst()) {
 			do{
-				
 				Card card = new Card();
 				card.setId(cursor.getLong(0));
 				card.setSerial(cursor.getBlob(1));
-				card.setProperties(cursor.getBlob(2));
 				
 				CardClass cardClass = new CardClass();
-				cardClass.setId(cursor.getLong(3));
-				cardClass.setName(cursor.getString(4));
-				cardClass.setDescription(cursor.getString(5));
-				cardClass.setBitmapPath(cursor.getString(6));
+				cardClass.setId(cursor.getLong(2));
+				cardClass.setName(cursor.getString(3));
+				cardClass.setDescription(cursor.getString(4));
+				cardClass.setBitmapPath(cursor.getString(5));
 				
 				card.setCardClass(cardClass);
+				
+				Cursor propertiesCursor = db.query(	TABLE_PROPERTY,
+												new String[] {PROPERTY_ID, PROPERTY_TAG, PROPERTY_R, PROPERTY_INFO},
+												PROPERTY_ID_CARD + "=?",
+												new String[] {String.valueOf(card.getId())},
+												null, null, null, null);
+				
+				List<CardProperty> properties = new LinkedList<CardProperty>();
+				if(propertiesCursor != null && propertiesCursor.moveToFirst()) {
+					do{
+						CardPropertyDAO propertyDAO = new CardPropertyDAO(context);
+						CardProperty property = propertyDAO.get(propertiesCursor.getLong(0));
+						properties.add(property);
+					} while(propertiesCursor.moveToNext());
+				}
+				card.setProperties(properties);
 				
 				cards.add(card);
 			} while(cursor.moveToNext());
 		}
+		
+		db.close();
 		
 		return cards;
 	}
@@ -133,7 +166,6 @@ public class CardDAO extends DatabaseHandler {
 			ContentValues values = new ContentValues();
 			values.put(CARD_ID, card.getId());
 			values.put(CARD_SERIAL, card.getSerial());
-			values.put(CARD_PROPERTIES, card.getProperties());
 			values.put(CARD_ID_CLASS, card.getClassID());
 
 			db.update(TABLE_CARD, values, CARD_ID + "=?" , new String[] {String.valueOf(card.getId())});
@@ -143,6 +175,8 @@ public class CardDAO extends DatabaseHandler {
 		finally {
 			db.endTransaction();
 		}
+		
+		db.close();
 	}
 	
 	public void delete(Card card) {
@@ -150,6 +184,48 @@ public class CardDAO extends DatabaseHandler {
 
 		db.delete(TABLE_DECK_CARD, CARD_ID + "=?", new String[] {String.valueOf(card.getId())});
 		db.delete(TABLE_CARD, CARD_ID + "=?", new String[] {String.valueOf(card.getId())});
+		
+		db.close();
+	}
+	
+	public void addProperty(Card card, CardProperty property) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		
+		CardPropertyDAO propertyDAO = new CardPropertyDAO(context);
+		if(this.get(card.getId()) == null)
+			throw new SQLiteException("Cannot find card");
+		if(propertyDAO.get(property.getId()) == null)
+			throw new SQLiteException("Cannot find property");
+		
+		ContentValues values = new ContentValues();
+		values.put(PROPERTY_ID, property.getInfo());
+		values.put(PROPERTY_TAG, property.getTag());
+		values.put(PROPERTY_R, property.getR());
+		values.put(PROPERTY_INFO, property.getInfo());
+		values.put(PROPERTY_ID_CARD, card.getId());
+		
+		db.update(TABLE_PROPERTY, values, PROPERTY_ID + "=?", new String[] {String.valueOf(property.getId())});
+		
+		db.close();
+	}
+	
+	public void removeProperty(Card card, CardProperty property) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		
+		CardPropertyDAO propertyDAO = new CardPropertyDAO(context);
+		if(this.get(card.getId()) == null)
+			throw new SQLiteException("Cannot find card");
+		if(propertyDAO.get(property.getId()) == null)
+			throw new SQLiteException("Cannot find property");
+		
+		ContentValues values = new ContentValues();
+		values.put(PROPERTY_ID, property.getInfo());
+		values.put(PROPERTY_TAG, property.getTag());
+		values.put(PROPERTY_R, property.getR());
+		values.put(PROPERTY_INFO, property.getInfo());
+		values.putNull(PROPERTY_ID_CARD);
+		
+		db.update(TABLE_PROPERTY, values, PROPERTY_ID + "=?", new String[] {String.valueOf(property.getId())});
 		
 		db.close();
 	}

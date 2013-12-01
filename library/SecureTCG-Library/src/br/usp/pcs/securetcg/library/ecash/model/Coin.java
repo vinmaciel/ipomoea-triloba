@@ -20,11 +20,12 @@ public class Coin {
 		this.serial = serial;
 	}
 
-	public List<CoinProperty> getProperties() {
+	public List<?> getProperties() {
 		return properties;
 	}
-	public void setProperties(List<CoinProperty> properties) {
-		this.properties = properties;
+	@SuppressWarnings("unchecked")
+	public void setProperties(List<?> properties) {
+		this.properties = (List<CoinProperty>) properties;
 	}
 	public void addProperty(CoinProperty property) {
 		if(this.properties == null)

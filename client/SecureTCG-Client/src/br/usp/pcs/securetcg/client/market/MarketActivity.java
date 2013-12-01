@@ -38,7 +38,7 @@ import br.usp.pcs.securetcg.client.deck.CardInfoActivity;
 import br.usp.pcs.securetcg.client.model.CardClass;
 import br.usp.pcs.securetcg.library.communication.json.MarketCardJson;
 import br.usp.pcs.securetcg.library.communication.json.MarketCardSetJson;
-import br.usp.pcs.securetcg.library.ecash.model.Wallet;
+import br.usp.pcs.securetcg.library.ecash.model.Coin;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -237,9 +237,14 @@ public class MarketActivity extends Activity {
 		}
 
 		@Override
-		public void onWithdraw(Wallet wallet) {
+		public void onWithdraw(Coin coin) {
 			activity.get().progressUpdate("New card available");
 			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void onVerifyError() {
+			activity.get().progressUpdate("Mint signature not accepted");
 		}
 		
 	}
