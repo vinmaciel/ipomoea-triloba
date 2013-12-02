@@ -2,7 +2,7 @@ package br.usp.pcs.securetcg.client.market;
 
 import android.os.Handler;
 import android.os.Message;
-import br.usp.pcs.securetcg.library.ecash.model.Wallet;
+import br.usp.pcs.securetcg.library.ecash.model.Coin;
 
 public abstract class WithdrawHandler extends Handler {
 
@@ -10,6 +10,7 @@ public abstract class WithdrawHandler extends Handler {
 	protected static final int STATE_REQUEST_FAILED = 2;
 	protected static final int STATE_SOLUTION_FAILED = 3;
 	protected static final int STATE_DONE = 4;
+	protected static final int STATE_SIGNATURE_ERROR = -1;
 	
 	public WithdrawHandler() {
 		super();
@@ -21,7 +22,9 @@ public abstract class WithdrawHandler extends Handler {
 	
 	public abstract void onSolutionFailed();
 	
-	public abstract void onWithdraw(Wallet wallet);
+	public abstract void onWithdraw(Coin coin, long cardID);
+	
+	public abstract void onVerifyError();
 	
 	@Override
 	public void handleMessage(Message message) {
@@ -36,7 +39,10 @@ public abstract class WithdrawHandler extends Handler {
 			onSolutionFailed();
 			break;
 		case STATE_DONE:
-			onWithdraw((Wallet) message.obj);
+			onWithdraw((Coin) ( (Object[]) message.obj )[0], (Long) ( (Object[]) message.obj )[1]);
+			break;
+		case STATE_SIGNATURE_ERROR:
+			onVerifyError();
 			break;
 		
 		default:

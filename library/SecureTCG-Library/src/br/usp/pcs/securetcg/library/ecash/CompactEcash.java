@@ -4,12 +4,17 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Calendar;
 
 import br.usp.pcs.securetcg.library.clsign.CLPrivateKey;
 import br.usp.pcs.securetcg.library.clsign.CLPublicKey;
 import br.usp.pcs.securetcg.library.clsign.CLSign;
 import br.usp.pcs.securetcg.library.clsign.CLSignature;
 import br.usp.pcs.securetcg.library.communication.ICommunication;
+import br.usp.pcs.securetcg.library.ecash.model.Coin;
+import br.usp.pcs.securetcg.library.ecash.model.CoinProperty;
 import br.usp.pcs.securetcg.library.ecash.model.UPrivateKey;
 import br.usp.pcs.securetcg.library.ecash.model.UPublicKey;
 import br.usp.pcs.securetcg.library.ecash.model.Wallet;
@@ -17,6 +22,7 @@ import br.usp.pcs.securetcg.library.pedcom.PedCom;
 import br.usp.pcs.securetcg.library.pedcom.PedCommitment;
 import br.usp.pcs.securetcg.library.pedcom.PedPublicKey;
 import br.usp.pcs.securetcg.library.utils.Prime;
+import br.usp.pcs.securetcg.library.vrf.VRF;
 
 /**
  * Class that implements the basics of the Compact E-Cash Scheme described by Camenisch, Hohenberger and Lysyanskaya.<br/>
@@ -323,12 +329,91 @@ public class CompactEcash {
 		//FIXME message size
 		CLSignature signature = CLSign.signBlind(A.toByteArray(), ck, A.toByteArray().length, pk, sk, par.getK());
 		
-		//TODO may need to reduce the user credits
+		//may need to reduce the user credits - won't do
 		
 		return new Object[] {true, _s, signature};
 	}
 	
-	public static boolean Spend() {
+	public static Coin spend_Wallet(UPrivateKey sku, UPublicKey pku, Wallet wallet) {
+		SystemParameter par = SystemParameter.get();
+		
+		BigInteger	n = new BigInteger( par.getP() );
+		
+		byte[] timestamp = String.valueOf(Calendar.getInstance().getTimeInMillis()).getBytes();
+		byte[] info = new byte[pku.getGu().length + timestamp.length];
+		//info = pku||timestamp
+		for(int i = 0; i < info.length; i++)
+			for(byte[] bytes : new byte[][] {pku.getGu(), timestamp})
+				for(int j = 0; j < bytes.length; j++)
+					info[i] = bytes[j];
+		
+		BigInteger	r = new BigInteger( VRF.generate(par.getG(0), sku.getU(), info, n.toByteArray()) );
+		
+		BigInteger R = null;
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			digest.update(r.toByteArray());
+			digest.update(info);
+			R = new BigInteger(digest.digest());
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+		BigInteger	S = new BigInteger( VRF.generate(par.getG(5), BigInteger.ONE.toByteArray(), sku.getU(), n.toByteArray()) );
+		
+		BigInteger	T = new BigInteger(pku.getGu())
+				.multiply(new BigInteger( VRF.generate(par.getG(5), R.toByteArray(), wallet.getT(), n.toByteArray()) ));
+		
+		CoinProperty property = new CoinProperty();
+		property.setInfo(info);
+		property.setTag(T.toByteArray());
+		property.setR(R.toByteArray());
+		
+		Coin coin = new Coin();
+		coin.setSerial(S.toByteArray());
+		coin.addProperty(property);
+		coin.addEventToHistory(S.toByteArray());
+		coin.addEventToHistory(T.toByteArray());
+		
+		return coin;
+	}
+	
+	public static boolean spend_SpenderSide(UPrivateKey sku, UPublicKey pku, ICommunication comm) {
+		SystemParameter par = SystemParameter.get();
+		
+		BigInteger	n = new BigInteger( par.getP() );
+		
+		String[] response = comm.spend_request(new String[] {pku.toString()});
+		BigInteger pku2 = new BigInteger(response[0]);
+		
+		byte[] timestamp = String.valueOf(Calendar.getInstance().getTimeInMillis()).getBytes();
+		byte[] info = new byte[pku.getGu().length + pku2.toByteArray().length + timestamp.length];
+		//info = pku1||pku2||timestamp
+		for(int i = 0; i < info.length; i++)
+			for(byte[] bytes : new byte[][] {pku.getGu(), pku2.toByteArray(), timestamp})
+				for(int j = 0; j < bytes.length; j++)
+					info[i] = bytes[j];
+		
+		BigInteger r = new BigInteger( VRF.generate(par.getG(0), sku.getU(), info, n.toByteArray()) );
+		
+		BigInteger R = null;
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			digest.update(r.toByteArray());
+			digest.update(info);
+			R = new BigInteger(digest.digest());
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+		//TODO complete
+		
+		return false;
+	}
+	
+	public static boolean spend_ReceiverSide_Key() {
 		return false;
 	}
 	

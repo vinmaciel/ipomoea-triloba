@@ -37,4 +37,6 @@ public interface ICommunication {
 	 */
 	public abstract String[] withdraw_solve(String[] message);
 	
+	public abstract String[] spend_request(String[] message);
+	
 }

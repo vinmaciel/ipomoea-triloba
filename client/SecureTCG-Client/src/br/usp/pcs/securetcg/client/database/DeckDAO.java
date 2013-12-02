@@ -42,30 +42,44 @@ public class DeckDAO extends DatabaseHandler {
 									new String[] {String.valueOf(id)}, 
 									null, null, null, null	);
 		
-		if(deckCursor != null) deckCursor.moveToFirst();
-		
-		Deck deck = new Deck();
-		deck.setId(deckCursor.getLong(0));
-		deck.setName(deckCursor.getString(1));
-		deck.setDescription(deckCursor.getString(2));
-		
-		Cursor cardsCursor = db.query(	TABLE_DECK_CARD, 
-									new String[] {DECK_CARD_ID_DECK, DECK_CARD_ID_CARD}, 
-									DECK_CARD_ID_DECK + "=?", 
-									new String[] {String.valueOf(id)}, 
-									null, null, null, null	);
-		
-		List<Card> cards = new LinkedList<Card>();
-		if(cardsCursor != null && cardsCursor.moveToFirst()) {
-			do{
-				CardDAO cardDAO = new CardDAO(context);
-				Card card = cardDAO.get(cardsCursor.getLong(1));
-				cards.add(card);
-			} while(cardsCursor.moveToNext());
+		Deck deck = null;
+		List<Long> cardIDs = null;
+		if(deckCursor != null && deckCursor.moveToFirst()) {
+			deck = new Deck();
+			deck.setId(deckCursor.getLong(0));
+			deck.setName(deckCursor.getString(1));
+			deck.setDescription(deckCursor.getString(2));
+			
+			Cursor cardsCursor = db.query(	TABLE_DECK_CARD, 
+										new String[] {DECK_CARD_ID_DECK, DECK_CARD_ID_CARD}, 
+										DECK_CARD_ID_DECK + "=?", 
+										new String[] {String.valueOf(id)}, 
+										null, null, null, null	);
+			
+			cardIDs = new LinkedList<Long>();
+			if(cardsCursor != null && cardsCursor.moveToFirst()) {
+				do{
+					cardIDs.add(cardsCursor.getLong(1));
+				} while(cardsCursor.moveToNext());
+				
+				cardsCursor.close();
+			}
+			
+			deckCursor.close();
 		}
-		deck.setCards(cards);
 		
 		db.close();
+		
+		if(deck != null) {
+			List<Card> cards = new LinkedList<Card>();
+			for(Long cardID : cardIDs) {
+				CardDAO cardDAO = new CardDAO(context);
+				Card card = cardDAO.get(cardID);
+				cards.add(card);
+			}
+			
+			deck.setCards(cards);
+		}
 		
 		return deck;
 	}
@@ -95,18 +109,31 @@ public class DeckDAO extends DatabaseHandler {
 				List<Card> cards = new LinkedList<Card>();
 				if(cardsCursor != null && cardsCursor.moveToFirst()) {
 					do{
-						CardDAO cardDAO = new CardDAO(context);
-						Card card = cardDAO.get(cardsCursor.getLong(1));
+						Card card = new Card();
+						card.setId(cardsCursor.getLong(1));
 						cards.add(card);
 					} while(cardsCursor.moveToNext());
+					
+					cardsCursor.close();
 				}
 				deck.setCards(cards);
 				
 				decks.add(deck);
 			} while(cursor.moveToNext());
+			
+			cursor.close();
 		}
 		
 		db.close();
+		
+		for(int i = 0; i < decks.size(); i++) {
+			CardDAO cardDAO = new CardDAO(context);
+			
+			for(int j = 0; j < decks.get(i).getCards().size(); j++) {
+				Card card = cardDAO.get(decks.get(i).getCards().get(j).getId());
+				decks.get(i).getCards().set(j, card);
+			}
+		}
 		
 		return decks;
 	}
@@ -134,13 +161,13 @@ public class DeckDAO extends DatabaseHandler {
 	}
 	
 	public void addCard(Deck deck, Card card) {
-		SQLiteDatabase db = this.getWritableDatabase();
-		
 		CardDAO cardDAO = new CardDAO(context);
 		if(this.get(deck.getId()) == null)
 			throw new SQLiteException("Cannot find deck");
 		if(cardDAO.get(card.getId()) == null)
 			throw new SQLiteException("Cannot find card");
+		
+		SQLiteDatabase db = this.getWritableDatabase();
 		
 		ContentValues values = new ContentValues();
 		values.put(DECK_CARD_ID_CARD, card.getId());
@@ -155,13 +182,13 @@ public class DeckDAO extends DatabaseHandler {
 	}
 	
 	public void removeCard(Deck deck, Card card) {
-		SQLiteDatabase db = this.getWritableDatabase();
-		
 		CardDAO cardDAO = new CardDAO(context);
 		if(this.get(deck.getId()) == null)
 			throw new SQLiteException("Cannot find deck");
 		if(cardDAO.get(card.getId()) == null)
 			throw new SQLiteException("Cannot find card");
+		
+		SQLiteDatabase db = this.getWritableDatabase();
 		
 		db.delete(TABLE_DECK_CARD, DECK_CARD_ID_DECK + "=? AND " + DECK_CARD_ID_CARD + "=?", new String[] {String.valueOf(deck.getId()), String.valueOf(card.getId())});
 		

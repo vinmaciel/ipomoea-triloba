@@ -17,6 +17,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	protected static final String TABLE_CARD = "card";
 	protected static final String TABLE_DECK_CARD = "deck_card";
 	protected static final String TABLE_CLASS = "class";
+	protected static final String TABLE_PROPERTY = "property";
 
 	//Table TABLE_DECK columns
 	protected static final String DECK_ID = "id";
@@ -26,7 +27,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	//Table TABLE_CARD columns
 	protected static final String CARD_ID = "id";
 	protected static final String CARD_SERIAL = "serial";
-	protected static final String CARD_PROPERTIES = "properties";
 	protected static final String CARD_ID_CLASS = "id_class";
 	
 	//Table TABLE_DECK_CARD columns
@@ -39,6 +39,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	protected static final String CLASS_DESCRIPTION = "description";
 	protected static final String CLASS_BITMAP_PATH = "bitmap_path";
 	
+	//Table TABLE_PROPERTY columns
+	protected static final String PROPERTY_ID = "id";
+	protected static final String PROPERTY_TAG = "tag";
+	protected static final String PROPERTY_R = "r";
+	protected static final String PROPERTY_INFO = "info";
+	protected static final String PROPERTY_ID_CARD = "id_card";
+	
 	public DatabaseHandler(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
 	}
@@ -48,7 +55,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		String CREATE_CARD_TABLE =	"CREATE TABLE " + TABLE_CARD + "(" +
 									CARD_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
 									CARD_SERIAL + " BLOB," +
-									CARD_PROPERTIES + " BLOB," +
 									CARD_ID_CLASS + " INTEGER," +
 									"FOREIGN KEY(" + CARD_ID_CLASS + ") REFERENCES " + TABLE_CLASS + "(" + CLASS_ID + ")" + 
 									")";
@@ -69,11 +75,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 									CLASS_DESCRIPTION + " TEXT," +
 									CLASS_BITMAP_PATH + " TEXT" +
 									")";
+		String CREATE_PROPERTY_TABLE =	"CREATE TABLE " + TABLE_PROPERTY + "(" +
+										PROPERTY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+										PROPERTY_TAG + " BLOB," +
+										PROPERTY_R + " BLOB," +
+										PROPERTY_INFO + " BLOB," +
+										PROPERTY_ID_CARD + " INTEGER," +
+										"FOREIGN KEY(" + PROPERTY_ID_CARD + ") REFERENCES " + TABLE_CARD + "(" + CARD_ID + ")" +
+										")";
 		
 		db.execSQL(CREATE_DECK_TABLE);
 		db.execSQL(CREATE_CARD_TABLE);
 		db.execSQL(CREATE_DECK_CARD_TABLE);
 		db.execSQL(CREATE_CLASS_TABLE);
+		db.execSQL(CREATE_PROPERTY_TABLE);
 	}
 	
 	@Override
@@ -83,6 +98,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_DECK);
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_CARD);
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_CLASS);
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_PROPERTY);
 		this.onCreate(db);
 	}
 	

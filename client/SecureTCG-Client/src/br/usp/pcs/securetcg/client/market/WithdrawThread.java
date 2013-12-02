@@ -28,7 +28,7 @@ import br.usp.pcs.securetcg.library.communication.json.WithdrawRequestJson;
 import br.usp.pcs.securetcg.library.communication.json.WithdrawSolveJson;
 import br.usp.pcs.securetcg.library.communication.json.WithdrawWalletJson;
 import br.usp.pcs.securetcg.library.ecash.CompactEcash;
-import br.usp.pcs.securetcg.library.ecash.SystemParameter;
+import br.usp.pcs.securetcg.library.ecash.model.Coin;
 import br.usp.pcs.securetcg.library.ecash.model.UPrivateKey;
 import br.usp.pcs.securetcg.library.ecash.model.UPublicKey;
 import br.usp.pcs.securetcg.library.ecash.model.Wallet;
@@ -60,15 +60,20 @@ public class WithdrawThread extends Thread {
 			
 			Wallet wallet = CompactEcash.withdraw_UserSide(sku, pku, new WithdrawCommunication(), new BigInteger(String.valueOf(this.cardID)));
 			
-			SystemParameter par = SystemParameter.get();
 			CLSignature sig = new CLSignature();
 			sig.setA(wallet.getSigA());
 			sig.setE(wallet.getSigE());
 			sig.setV(wallet.getSigV());
 			CLPublicKey pkb = prefs.getBankKey();
-			Log.d("Wallet",  "" + CLSign.verify(new byte[][] {sku.getU(), wallet.getS(), wallet.getT(), wallet.getJ(), wallet.getX(), wallet.getQ()}, sig, pkb) );
+			if( !CLSign.verify(new byte[][] {sku.getU(), wallet.getS(), wallet.getT(), wallet.getJ(), wallet.getX(), wallet.getQ()}, sig, pkb) ) {
+				message = handler.obtainMessage(WithdrawHandler.STATE_SIGNATURE_ERROR, 0, 0, null);
+				message.sendToTarget();
+				return;
+			}
 			
-			message = handler.obtainMessage(WithdrawHandler.STATE_DONE, 0, 0, wallet);
+			Coin coin = CompactEcash.spend_Wallet(sku, pku, wallet);
+			
+			message = handler.obtainMessage(WithdrawHandler.STATE_DONE, 0, 0, new Object[] {coin, cardID});
 			message.sendToTarget();
 		} catch(IOException e) {
 			
@@ -239,6 +244,11 @@ public class WithdrawThread extends Thread {
 				handlerMessage.sendToTarget();
 				return new String[] {String.valueOf(false)};
 			}
+		}
+
+		@Override
+		public String[] spend_request(String[] message) {
+			return null;
 		}
 		
 	}

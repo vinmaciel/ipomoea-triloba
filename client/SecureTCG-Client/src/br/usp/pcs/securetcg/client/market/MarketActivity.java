@@ -34,11 +34,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 import br.usp.pcs.securetcg.client.R;
 import br.usp.pcs.securetcg.client.database.CardClassDAO;
+import br.usp.pcs.securetcg.client.database.CardDAO;
+import br.usp.pcs.securetcg.client.database.CardPropertyDAO;
 import br.usp.pcs.securetcg.client.deck.CardInfoActivity;
+import br.usp.pcs.securetcg.client.model.Card;
 import br.usp.pcs.securetcg.client.model.CardClass;
+import br.usp.pcs.securetcg.client.model.CardProperty;
 import br.usp.pcs.securetcg.library.communication.json.MarketCardJson;
 import br.usp.pcs.securetcg.library.communication.json.MarketCardSetJson;
-import br.usp.pcs.securetcg.library.ecash.model.Wallet;
+import br.usp.pcs.securetcg.library.ecash.model.Coin;
+import br.usp.pcs.securetcg.library.ecash.model.CoinProperty;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -201,7 +206,7 @@ public class MarketActivity extends Activity {
 		@Override
 		public boolean onMenuItemClick(MenuItem item) {
 			handler = new CustomWithdrawHandler(MarketActivity.this);
-			WithdrawThread withdraw = new WithdrawThread(selected, getApplicationContext(), handler);
+			WithdrawThread withdraw = new WithdrawThread(cards.get(selected).getId(), getApplicationContext(), handler);
 			withdraw.start();
 			return false;
 		}
@@ -236,16 +241,39 @@ public class MarketActivity extends Activity {
 			activity.get().progressUpdate("Unable to authenticate");
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
-		public void onWithdraw(Wallet wallet) {
+		public void onWithdraw(Coin coin, long cardID) {
 			activity.get().progressUpdate("New card available");
-			// TODO Auto-generated method stub
+			List<CardClass> list  = new CardClassDAO(activity.get()).getAll();
+			CardClass cardClass = new CardClassDAO(activity.get()).get(cardID);
+			Card card = new Card();
+			card.setCardClass(cardClass);
+			card.setSerial(coin.getSerial());
+			card.setHistory(coin.getHistory());
+			new CardDAO(activity.get()).add(card);
+			
+			for(CoinProperty coinProperty : (List<CoinProperty>) coin.getProperties()) {
+				CardProperty property = new CardProperty();
+				property.setTag(coinProperty.getTag());
+				property.setR(coinProperty.getR());
+				property.setInfo(coinProperty.getInfo());
+				new CardPropertyDAO(activity.get()).add(property);
+				card.addProperty(property);
+			}
+		}
+
+		@Override
+		public void onVerifyError() {
+			activity.get().progressUpdate("Mint signature not accepted");
 		}
 		
 	}
 	
 	private class GetCardsFromMarketTask extends AsyncTask<Long, CardClass, Boolean> {
 
+		List<CardClass> pending = new LinkedList<CardClass>();
+		
 		@Override
 		protected void onPreExecute() {
 			super.onPreExecute();
@@ -342,6 +370,8 @@ public class MarketActivity extends Activity {
 				}
 			}
 			
+			publishProgress(null);
+			
 			return true;
 		}
 		
@@ -359,15 +389,25 @@ public class MarketActivity extends Activity {
 		protected void onProgressUpdate(CardClass... values) {
 			super.onProgressUpdate(values);
 			
-			CardClassDAO classDAO = new CardClassDAO(MarketActivity.this);
-			
-			if(classDAO.get(values[0].getId()) == null)	classDAO.add(values[0]);
-			else	classDAO.update(values[0]);
-			
-			if(!cards.contains(values[0]))	cards.add(values[0]);
-			else	cards.set(cards.indexOf(values[0]), values[0]);
-			
-			cardAdapter.notifyDataSetChanged();
+			if(values == null || values[0] == null) {
+				CardClassDAO classDAO = new CardClassDAO(MarketActivity.this);
+				
+				for(CardClass cardClass : pending) {
+					if(classDAO.get(cardClass.getId()) == null)	classDAO.add(cardClass);
+					else	classDAO.update(cardClass);
+					
+					cardAdapter.notifyDataSetChanged();
+				}
+				pending.clear();
+			}
+			else {
+				if(!cards.contains(values[0]))	cards.add(values[0]);
+				else	cards.set(cards.indexOf(values[0]), values[0]);
+				
+				cardAdapter.notifyDataSetChanged();
+				
+				pending.add(values[0]);
+			}
 		}
 		
 	}

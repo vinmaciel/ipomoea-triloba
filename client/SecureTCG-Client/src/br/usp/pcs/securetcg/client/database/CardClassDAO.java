@@ -45,6 +45,8 @@ public class CardClassDAO extends DatabaseHandler {
 			cardClass.setName(cursor.getString(1));
 			cardClass.setDescription(cursor.getString(2));
 			cardClass.setBitmapPath(cursor.getString(3));
+			
+			cursor.close();
 		}
 		
 		db.close();
@@ -71,6 +73,8 @@ public class CardClassDAO extends DatabaseHandler {
 				
 				cardClasses.add(cardClass);
 			} while(cursor.moveToNext());
+			
+			cursor.close();
 		}
 		
 		db.close();
