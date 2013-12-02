@@ -2,8 +2,13 @@ package br.usp.pcs.securetcg.client.deck;
 
 import java.util.List;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -148,6 +153,7 @@ public class CardManagerActivity extends Activity {
 		cardList.setAdapter(cardAdapter);
 		cardList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
+			@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 			@Override
 			public void onItemClick(AdapterView<?> parent, View child, int position, long id) {
 				if(!selected[position]) {
@@ -158,6 +164,10 @@ public class CardManagerActivity extends Activity {
 					selected[position] = false;
 					selectionSize--;
 				}
+				cardAdapter.notifyDataSetChanged();
+				
+				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+					invalidateOptionsMenu();
 			}
 		});
 	}
@@ -209,6 +219,8 @@ public class CardManagerActivity extends Activity {
 		for(long cardID : ids) {
 			Card card = cardDAO.get(cardID);
 			deckDAO.removeCard(deck, card);
+			cards.remove(card);
+			cardAdapter.notifyDataSetChanged();
 		}
 	}
 	
@@ -233,9 +245,16 @@ public class CardManagerActivity extends Activity {
 			TextView description = (TextView) row.findViewById(R.id.card_row_description);
 			ImageView thumbnail = (ImageView) row.findViewById(R.id.card_row_thumbnail);
 			
-			name.setText("" + cards.get(position));
-			description.setText("" + cards.get(position));
-			//TODO set image to thumbnail
+			name.setText("" + cards.get(position).getName());
+			description.setText("" + cards.get(position).getDescription());
+			String path = cards.get(position).getBitmapPath();
+			
+			if(path != null) {
+				Bitmap bitmap = BitmapFactory.decodeFile(path);
+				Matrix matrix = new Matrix();
+				matrix.setScale(0.3f, 0.3f);
+				thumbnail.setImageBitmap(Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false));
+			}
 			background.setBackgroundColor(selected[position] ? getResources().getColor(R.color.list_selected) : getResources().getColor(R.color.transparent));
 			
 			return row;
@@ -248,6 +267,7 @@ public class CardManagerActivity extends Activity {
 		@Override
 		public boolean onMenuItemClick(MenuItem item) {
 			unselectAll();
+			cardAdapter.notifyDataSetChanged();
 			return false;
 		}
 		
@@ -265,7 +285,7 @@ public class CardManagerActivity extends Activity {
 			long cardID = -1;
 			for(int i = 0; i < selected.length; i++)
 				if(selected[i]) {
-					cardID = cards.get(i).getId();
+					cardID = cards.get(i).getClassID();
 					break;
 				}
 			
