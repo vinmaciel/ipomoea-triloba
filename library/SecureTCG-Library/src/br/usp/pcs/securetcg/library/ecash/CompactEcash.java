@@ -379,36 +379,61 @@ public class CompactEcash {
 		return coin;
 	}
 	
-	public static boolean spend_SpenderSide(UPrivateKey sku, UPublicKey pku, ICommunication comm) {
+	public static boolean spend_SpenderSide(UPrivateKey sku, UPublicKey pku, ICommunication comm, Coin coin, long coinID) {
 		SystemParameter par = SystemParameter.get();
 		
 		BigInteger	n = new BigInteger( par.getP() );
 		
-		String[] response = comm.spend_request(new String[] {pku.toString()});
+		String[] response = comm.spend_request(new String[] {pku.toString(), String.valueOf(coinID)});
 		BigInteger pku2 = new BigInteger(response[0]);
+		String timestamp = response[1];
+		BigInteger r = new BigInteger(response[2]);
+		byte[] info = response[3].getBytes();
 		
-		byte[] timestamp = String.valueOf(Calendar.getInstance().getTimeInMillis()).getBytes();
-		byte[] info = new byte[pku.getGu().length + pku2.toByteArray().length + timestamp.length];
+		byte[] infoX = new byte[pku.getGu().length + pku2.toByteArray().length + timestamp.getBytes().length];
 		//info = pku1||pku2||timestamp
 		for(int i = 0; i < info.length; i++)
-			for(byte[] bytes : new byte[][] {pku.getGu(), pku2.toByteArray(), timestamp})
+			for(byte[] bytes : new byte[][] {pku.getGu(), pku2.toByteArray(), timestamp.getBytes()})
 				for(int j = 0; j < bytes.length; j++)
 					info[i] = bytes[j];
 		
-		BigInteger r = new BigInteger( VRF.generate(par.getG(0), sku.getU(), info, n.toByteArray()) );
+		if( !VRF.verify(r.toByteArray(), pku2.toByteArray(), info, n.toByteArray()) ) {
+			System.out.println("Verify failure");
+			return false;
+		}
 		
 		BigInteger R = null;
+		BigInteger h = null;
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
 			digest.update(r.toByteArray());
 			digest.update(info);
 			R = new BigInteger(digest.digest());
+			
+			digest.reset();
+			
+			for(byte[] input : coin.getHistory())
+				digest.update(input);
+			h = new BigInteger(digest.digest());
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 			return false;
 		}
 		
+		BigInteger	T = new BigInteger(pku.getGu())
+				.multiply(new BigInteger( VRF.generate(par.getG(5), R.toByteArray(), new BigInteger(pku.getGu()).add(h).toByteArray(), n.toByteArray()) ));
+		
+		CoinProperty property = new CoinProperty();
+		property.setInfo(info);
+		property.setTag(T.toByteArray());
+		property.setR(R.toByteArray());
+		
+		coin.addProperty(property);
+		coin.addEventToHistory(T.toByteArray());
+		
 		//TODO complete
+		response = comm.spend_resolve(new String[] {});
+		
 		
 		return false;
 	}

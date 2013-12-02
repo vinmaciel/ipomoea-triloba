@@ -39,4 +39,6 @@ public interface ICommunication {
 	
 	public abstract String[] spend_request(String[] message);
 	
+	public abstract String[] spend_resolve(String[] message);
+	
 }
