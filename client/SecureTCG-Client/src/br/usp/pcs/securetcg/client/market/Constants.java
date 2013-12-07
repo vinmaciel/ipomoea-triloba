@@ -3,7 +3,7 @@ package br.usp.pcs.securetcg.client.market;
 public class Constants {
 
 	private static final String SERVER_PROTOCOL = "http://";
-	private static final String SERVER_ADDRESS = "192.168.1.34";
+	private static final String SERVER_ADDRESS = "192.168.43.63";
 	private static final String SERVER_PORT = ":8080/";
 	private static final String SERVER_CONTEXT = "securetcg/";
 	

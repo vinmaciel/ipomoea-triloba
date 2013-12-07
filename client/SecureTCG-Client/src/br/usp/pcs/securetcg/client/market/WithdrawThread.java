@@ -22,7 +22,7 @@ import br.usp.pcs.securetcg.client.ClientPreferences;
 import br.usp.pcs.securetcg.library.clsign.CLPublicKey;
 import br.usp.pcs.securetcg.library.clsign.CLSign;
 import br.usp.pcs.securetcg.library.clsign.CLSignature;
-import br.usp.pcs.securetcg.library.communication.ICommunication;
+import br.usp.pcs.securetcg.library.communication.IWithdrawCommunication;
 import br.usp.pcs.securetcg.library.communication.json.WithdrawChallengeJson;
 import br.usp.pcs.securetcg.library.communication.json.WithdrawRequestJson;
 import br.usp.pcs.securetcg.library.communication.json.WithdrawSolveJson;
@@ -80,7 +80,7 @@ public class WithdrawThread extends Thread {
 		}
 	}
 	
-	private class WithdrawCommunication implements ICommunication {
+	private class WithdrawCommunication implements IWithdrawCommunication {
 		
 		private String cookie = null;
 		
@@ -244,16 +244,6 @@ public class WithdrawThread extends Thread {
 				handlerMessage.sendToTarget();
 				return new String[] {String.valueOf(false)};
 			}
-		}
-
-		@Override
-		public String[] spend_request(String[] message) {
-			return null;
-		}
-
-		@Override
-		public String[] spend_resolve(String[] message) {
-			return null;
 		}
 		
 	}

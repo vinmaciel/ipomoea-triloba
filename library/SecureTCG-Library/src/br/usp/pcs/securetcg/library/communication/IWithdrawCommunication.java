@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 import br.usp.pcs.securetcg.library.clsign.CLSignature;
 
-public interface ICommunication {
+public interface IWithdrawCommunication {
 
 	/**
 	 * Requests a wallet from the bank, sending its parameters and random values for the Proof of Knowledge.
@@ -36,9 +36,5 @@ public interface ICommunication {
 	 * @return representation of boolean as confirmation (length=1 or 4).
 	 */
 	public abstract String[] withdraw_solve(String[] message);
-	
-	public abstract String[] spend_request(String[] message);
-	
-	public abstract String[] spend_resolve(String[] message);
 	
 }

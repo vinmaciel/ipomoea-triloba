@@ -12,12 +12,14 @@ import br.usp.pcs.securetcg.library.clsign.CLPrivateKey;
 import br.usp.pcs.securetcg.library.clsign.CLPublicKey;
 import br.usp.pcs.securetcg.library.clsign.CLSign;
 import br.usp.pcs.securetcg.library.clsign.CLSignature;
-import br.usp.pcs.securetcg.library.communication.ICommunication;
+import br.usp.pcs.securetcg.library.communication.ISpendCommunication;
+import br.usp.pcs.securetcg.library.communication.IWithdrawCommunication;
 import br.usp.pcs.securetcg.library.ecash.model.Coin;
 import br.usp.pcs.securetcg.library.ecash.model.CoinProperty;
 import br.usp.pcs.securetcg.library.ecash.model.UPrivateKey;
 import br.usp.pcs.securetcg.library.ecash.model.UPublicKey;
 import br.usp.pcs.securetcg.library.ecash.model.Wallet;
+import br.usp.pcs.securetcg.library.interfaces.ICard;
 import br.usp.pcs.securetcg.library.pedcom.PedCom;
 import br.usp.pcs.securetcg.library.pedcom.PedCommitment;
 import br.usp.pcs.securetcg.library.pedcom.PedPublicKey;
@@ -139,7 +141,7 @@ public class CompactEcash {
 	 * 
 	 * @return a new {@link Wallet} with the requested coins, or <code>null</code> in case of error.
 	 */
-	public static Wallet withdraw_UserSide(UPrivateKey sku, UPublicKey pku, ICommunication comm, BigInteger cardID) {
+	public static Wallet withdraw_UserSide(UPrivateKey sku, UPublicKey pku, IWithdrawCommunication comm, BigInteger cardID) {
 		SystemParameter par = SystemParameter.get();
 		
 		BigInteger n = new BigInteger(par.getN());
@@ -339,11 +341,11 @@ public class CompactEcash {
 		
 		BigInteger	n = new BigInteger( par.getP() );
 		
-		byte[] timestamp = String.valueOf(Calendar.getInstance().getTimeInMillis()).getBytes();
-		byte[] info = new byte[pku.getGu().length + timestamp.length];
+		BigInteger timestamp = new BigInteger( String.valueOf(Calendar.getInstance().getTimeInMillis()).getBytes() );
+		byte[] info = new byte[pku.getGu().length + timestamp.toByteArray().length];
 		//info = pku||timestamp
 		for(int i = 0; i < info.length; i++)
-			for(byte[] bytes : new byte[][] {pku.getGu(), timestamp})
+			for(byte[] bytes : new byte[][] {pku.getGu(), timestamp.toByteArray()})
 				for(int j = 0; j < bytes.length; j++)
 					info[i] = bytes[j];
 		
@@ -368,7 +370,8 @@ public class CompactEcash {
 		CoinProperty property = new CoinProperty();
 		property.setInfo(info);
 		property.setTag(T.toByteArray());
-		property.setR(R.toByteArray());
+		property.setR(r.toByteArray());
+		property.setHash(R.toByteArray());
 		
 		Coin coin = new Coin();
 		coin.setSerial(S.toByteArray());
@@ -379,28 +382,32 @@ public class CompactEcash {
 		return coin;
 	}
 	
-	public static boolean spend_SpenderSide(UPrivateKey sku, UPublicKey pku, ICommunication comm, Coin coin, long coinID) {
+	public static boolean spend_SpenderSide(UPrivateKey sku, UPublicKey pku, ISpendCommunication comm, Coin coin, long coinID) {
 		SystemParameter par = SystemParameter.get();
 		
 		BigInteger	n = new BigInteger( par.getP() );
 		
-		String[] response = comm.spend_request(new String[] {pku.toString(), String.valueOf(coinID)});
-		BigInteger pku2 = new BigInteger(response[0]);
-		String timestamp = response[1];
-		BigInteger r = new BigInteger(response[2]);
-		byte[] info = response[3].getBytes();
+		BigInteger timestamp = new BigInteger( String.valueOf(Calendar.getInstance().getTimeInMillis()).getBytes() );
 		
-		byte[] infoX = new byte[pku.getGu().length + pku2.toByteArray().length + timestamp.getBytes().length];
+		String[] response = comm.spend_request(pku, coinID);
+		BigInteger pku2 = new BigInteger(response[0]);
+		String timestampReceived = response[1];
+		
+		//Compare timestamp received with current - threshold: 60s
+		if(new BigInteger(timestampReceived).subtract(timestamp).abs()	.subtract(new BigInteger("60000"))	.compareTo(BigInteger.ZERO) > 0) {
+			System.out.println("Invalid timestamp");
+			return false;
+		}
+		timestamp = new BigInteger(timestampReceived);
+		
+		byte[] info = new byte[pku.getGu().length + pku2.toByteArray().length + timestamp.toByteArray().length];
 		//info = pku1||pku2||timestamp
 		for(int i = 0; i < info.length; i++)
-			for(byte[] bytes : new byte[][] {pku.getGu(), pku2.toByteArray(), timestamp.getBytes()})
+			for(byte[] bytes : new byte[][] {pku.getGu(), pku2.toByteArray(), timestamp.toByteArray()})
 				for(int j = 0; j < bytes.length; j++)
 					info[i] = bytes[j];
 		
-		if( !VRF.verify(r.toByteArray(), pku2.toByteArray(), info, n.toByteArray()) ) {
-			System.out.println("Verify failure");
-			return false;
-		}
+		BigInteger r = new BigInteger( VRF.generate(par.getG(5), pku2.toByteArray(), info, n.toByteArray()) );
 		
 		BigInteger R = null;
 		BigInteger h = null;
@@ -410,6 +417,7 @@ public class CompactEcash {
 			digest.update(info);
 			R = new BigInteger(digest.digest());
 			
+			//Redundancy
 			digest.reset();
 			
 			for(byte[] input : coin.getHistory())
@@ -431,14 +439,18 @@ public class CompactEcash {
 		coin.addProperty(property);
 		coin.addEventToHistory(T.toByteArray());
 		
-		//TODO complete
-		response = comm.spend_resolve(new String[] {});
+		response = comm.spend_resolve(coin, coinID);
+		if(Boolean.getBoolean(response[0]))
+			return false;
 		
-		
-		return false;
+		return true;
 	}
 	
-	public static boolean spend_ReceiverSide_Key() {
+	public static Object[] spend_ReceiverSide_Key(UPublicKey pku) {
+		return new Object[] {pku.getGu(), new BigInteger(String.valueOf(Calendar.getInstance().getTimeInMillis()))};
+	}
+	
+	public static boolean spend_ReceiverSide_Receive(Coin coin, long coinID) {
 		return false;
 	}
 	
