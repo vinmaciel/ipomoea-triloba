@@ -43,6 +43,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	protected static final String PROPERTY_ID = "id";
 	protected static final String PROPERTY_TAG = "tag";
 	protected static final String PROPERTY_R = "r";
+	protected static final String PROPERTY_HASH = "hash";
 	protected static final String PROPERTY_INFO = "info";
 	protected static final String PROPERTY_ID_CARD = "id_card";
 	
@@ -79,6 +80,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 										PROPERTY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
 										PROPERTY_TAG + " BLOB," +
 										PROPERTY_R + " BLOB," +
+										PROPERTY_HASH + " BLOB," +
 										PROPERTY_INFO + " BLOB," +
 										PROPERTY_ID_CARD + " INTEGER," +
 										"FOREIGN KEY(" + PROPERTY_ID_CARD + ") REFERENCES " + TABLE_CARD + "(" + CARD_ID + ")" +

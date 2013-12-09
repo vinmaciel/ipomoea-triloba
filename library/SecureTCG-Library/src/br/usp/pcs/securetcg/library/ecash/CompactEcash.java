@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
+import java.util.List;
 
 import br.usp.pcs.securetcg.library.clsign.CLPrivateKey;
 import br.usp.pcs.securetcg.library.clsign.CLPublicKey;
@@ -19,7 +20,6 @@ import br.usp.pcs.securetcg.library.ecash.model.CoinProperty;
 import br.usp.pcs.securetcg.library.ecash.model.UPrivateKey;
 import br.usp.pcs.securetcg.library.ecash.model.UPublicKey;
 import br.usp.pcs.securetcg.library.ecash.model.Wallet;
-import br.usp.pcs.securetcg.library.interfaces.ICard;
 import br.usp.pcs.securetcg.library.pedcom.PedCom;
 import br.usp.pcs.securetcg.library.pedcom.PedCommitment;
 import br.usp.pcs.securetcg.library.pedcom.PedPublicKey;
@@ -344,10 +344,10 @@ public class CompactEcash {
 		BigInteger timestamp = new BigInteger( String.valueOf(Calendar.getInstance().getTimeInMillis()).getBytes() );
 		byte[] info = new byte[pku.getGu().length + timestamp.toByteArray().length];
 		//info = pku||timestamp
-		for(int i = 0; i < info.length; i++)
-			for(byte[] bytes : new byte[][] {pku.getGu(), timestamp.toByteArray()})
-				for(int j = 0; j < bytes.length; j++)
-					info[i] = bytes[j];
+		int count = 0;
+		for(byte[] bytes : new byte[][] {pku.getGu(), timestamp.toByteArray()})
+			for(int j = 0; j < bytes.length; j++)
+				info[count++] = bytes[j];
 		
 		BigInteger	r = new BigInteger( VRF.generate(par.getG(0), sku.getU(), info, n.toByteArray()) );
 		
@@ -389,7 +389,7 @@ public class CompactEcash {
 		
 		BigInteger timestamp = new BigInteger( String.valueOf(Calendar.getInstance().getTimeInMillis()).getBytes() );
 		
-		String[] response = comm.spend_request(pku, coinID);
+		String[] response = comm.spend_request(pku, coin, coinID);
 		BigInteger pku2 = new BigInteger(response[0]);
 		String timestampReceived = response[1];
 		
@@ -446,12 +446,63 @@ public class CompactEcash {
 		return true;
 	}
 	
-	public static Object[] spend_ReceiverSide_Key(UPublicKey pku) {
-		return new Object[] {pku.getGu(), new BigInteger(String.valueOf(Calendar.getInstance().getTimeInMillis()))};
+	/**
+	 * First step to receive a coin from another user.
+	 * After receiving the other user identity, generates the current timestamp to transfer the coin with.
+	 * 
+	 * @param pku sender public key.
+	 * @param coin coin to be verified (previous to sending).
+	 * 
+	 * @return new {@link BigInteger} current timestamp, or <code>null</code> if invalid coin.
+	 */
+	public static BigInteger spend_ReceiverSide_Key(UPublicKey pku, Coin coin) {
+		SystemParameter par = SystemParameter.get();
+		
+		BigInteger n = new BigInteger(par.getP());
+		
+		@SuppressWarnings("unchecked")
+		List<CoinProperty> properties = (List<CoinProperty>) coin.getProperties();
+		CoinProperty lastProperty = properties.get(properties.size()-1);
+		
+		// Verify if the other player war the real owner of the card
+		if( VRF.verify(lastProperty.getR(), pku.getGu(), lastProperty.getInfo(), n.toByteArray()) ) {
+			System.out.println("Sender does not owns the card.");
+			return null;
+		}
+		
+		return new BigInteger(String.valueOf(Calendar.getInstance().getTimeInMillis()));
 	}
 	
-	public static boolean spend_ReceiverSide_Receive(Coin coin, long coinID) {
-		return false;
+	public static boolean spend_ReceiverSide_Receive(UPublicKey pku, Coin coin) {
+		SystemParameter par = SystemParameter.get();
+		
+		BigInteger n = new BigInteger(par.getP());
+		
+		@SuppressWarnings("unchecked")
+		List<CoinProperty> properties = (List<CoinProperty>) coin.getProperties();
+		CoinProperty lastProperty = properties.get(properties.size()-1);
+		
+		BigInteger R = null;
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			digest.update(lastProperty.getR());
+			digest.update(lastProperty.getInfo());
+			R = new BigInteger(digest.digest());
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+			return false;
+		}
+		if(!R.equals(new BigInteger(lastProperty.getHash()))) {
+			System.out.println("Hash does not match.");
+			return false;
+		}
+		
+		if( VRF.verify(lastProperty.getR(), pku.getGu(), lastProperty.getInfo(), n.toByteArray()) ) {
+			System.out.println("Card transfered to another user.");
+			return false;
+		}
+		
+		return true;
 	}
 	
 	public static boolean Deposit() {

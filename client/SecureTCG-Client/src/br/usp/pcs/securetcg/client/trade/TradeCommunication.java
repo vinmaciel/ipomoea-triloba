@@ -18,10 +18,10 @@ public class TradeCommunication {
 	}
 	
 	public void listen(Handler handler) {
-		byte[] buffer = new byte[Constants.TRADE_BUFFER];
-		int bytes = 0;
-		
 		while(true) {
+			byte[] buffer = new byte[Constants.TRADE_BUFFER];
+			int bytes = 0;
+			
 			try {
 				bytes = in.read(buffer);
 				if(bytes == 1 && buffer[0] == -1)

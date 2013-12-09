@@ -30,4 +30,11 @@ public class Constants {
 	protected static final String TRADE_CONNECTION_TYPE = "ConnectionType";
 	protected static final String TRADE_CONNECTION_SERVER = "ConnectionServer";
 	protected static final String TRADE_CONNECTION_CLIENT = "ConnectionClient";
+	
+	
+	protected static final String TRADE_PROTOCOL = "trade://";
+	protected static final String TRADE_REQUEST = "request?";
+	protected static final String TRADE_ACCEPT = "accept?";
+	protected static final String TRADE_SEND = "send?";
+	protected static final String TRADE_CONFIRM = "confirm?";
 }

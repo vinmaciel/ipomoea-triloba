@@ -49,7 +49,7 @@ public class CardDAO extends DatabaseHandler {
 									TABLE_CLASS + "." + CLASS_ID, TABLE_CLASS + "." + CLASS_NAME, 
 									TABLE_CLASS + "." + CLASS_DESCRIPTION, TABLE_CLASS + "." + CLASS_BITMAP_PATH
 								}, 
-								CARD_ID + "=?", 
+								TABLE_CARD + "." + CARD_ID + "=?", 
 								new String[] {String.valueOf(id)}, 
 								null, null, null, null	);
 
@@ -68,7 +68,7 @@ public class CardDAO extends DatabaseHandler {
 			card.setCardClass(cardClass);
 		
 			Cursor propertiesCursor = db.query(	TABLE_PROPERTY,
-											new String[] {PROPERTY_ID, PROPERTY_TAG, PROPERTY_R, PROPERTY_INFO},
+											new String[] {PROPERTY_ID, PROPERTY_TAG, PROPERTY_R, PROPERTY_HASH, PROPERTY_INFO},
 											PROPERTY_ID_CARD + "=?",
 											new String[] {String.valueOf(id)},
 											null, null, null, null);
@@ -80,7 +80,8 @@ public class CardDAO extends DatabaseHandler {
 					property.setId(propertiesCursor.getLong(0));
 					property.setTag(propertiesCursor.getBlob(1));
 					property.setR(propertiesCursor.getBlob(2));
-					property.setInfo(propertiesCursor.getBlob(3));
+					property.setHash(propertiesCursor.getBlob(3));
+					property.setInfo(propertiesCursor.getBlob(4));
 					
 					properties.add(property);
 				} while(propertiesCursor.moveToNext());
@@ -126,7 +127,7 @@ public class CardDAO extends DatabaseHandler {
 				card.setCardClass(cardClass);
 				
 				Cursor propertiesCursor = db.query(	TABLE_PROPERTY,
-												new String[] {PROPERTY_ID, PROPERTY_TAG, PROPERTY_R, PROPERTY_INFO},
+												new String[] {PROPERTY_ID, PROPERTY_TAG, PROPERTY_R, PROPERTY_HASH, PROPERTY_INFO},
 												PROPERTY_ID_CARD + "=?",
 												new String[] {String.valueOf(card.getId())},
 												null, null, null, null);
@@ -138,7 +139,8 @@ public class CardDAO extends DatabaseHandler {
 						property.setId(propertiesCursor.getLong(0));
 						property.setTag(propertiesCursor.getBlob(1));
 						property.setR(propertiesCursor.getBlob(2));
-						property.setInfo(propertiesCursor.getBlob(3));
+						property.setHash(propertiesCursor.getBlob(3));
+						property.setInfo(propertiesCursor.getBlob(4));
 						
 						properties.add(property);
 					} while(propertiesCursor.moveToNext());
@@ -186,18 +188,19 @@ public class CardDAO extends DatabaseHandler {
 	}
 	
 	public void addProperty(Card card, CardProperty property) {
-		SQLiteDatabase db = this.getWritableDatabase();
-		
 		CardPropertyDAO propertyDAO = new CardPropertyDAO(context);
 		if(this.get(card.getId()) == null)
 			throw new SQLiteException("Cannot find card");
 		if(propertyDAO.get(property.getId()) == null)
 			throw new SQLiteException("Cannot find property");
 		
+		SQLiteDatabase db = this.getWritableDatabase();
+		
 		ContentValues values = new ContentValues();
-		values.put(PROPERTY_ID, property.getInfo());
+		values.put(PROPERTY_ID, property.getId());
 		values.put(PROPERTY_TAG, property.getTag());
 		values.put(PROPERTY_R, property.getR());
+		values.put(PROPERTY_HASH, property.getHash());
 		values.put(PROPERTY_INFO, property.getInfo());
 		values.put(PROPERTY_ID_CARD, card.getId());
 		
@@ -219,6 +222,7 @@ public class CardDAO extends DatabaseHandler {
 		values.put(PROPERTY_ID, property.getInfo());
 		values.put(PROPERTY_TAG, property.getTag());
 		values.put(PROPERTY_R, property.getR());
+		values.put(PROPERTY_HASH, property.getHash());
 		values.put(PROPERTY_INFO, property.getInfo());
 		values.putNull(PROPERTY_ID_CARD);
 		

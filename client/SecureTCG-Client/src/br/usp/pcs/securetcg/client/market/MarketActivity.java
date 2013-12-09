@@ -82,6 +82,10 @@ public class MarketActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		cardAdapter.notifyDataSetChanged();
+		
+		//XXX
+		List<CardProperty> list = new CardPropertyDAO(this).getAll();
+		list.hashCode();
 	}
 	
 	/* Menu methods */
@@ -245,7 +249,6 @@ public class MarketActivity extends Activity {
 		@Override
 		public void onWithdraw(Coin coin, long cardID) {
 			activity.get().progressUpdate("New card available");
-			List<CardClass> list  = new CardClassDAO(activity.get()).getAll();
 			CardClass cardClass = new CardClassDAO(activity.get()).get(cardID);
 			Card card = new Card();
 			card.setCardClass(cardClass);
@@ -257,10 +260,15 @@ public class MarketActivity extends Activity {
 				CardProperty property = new CardProperty();
 				property.setTag(coinProperty.getTag());
 				property.setR(coinProperty.getR());
+				property.setHash(coinProperty.getHash());
 				property.setInfo(coinProperty.getInfo());
 				new CardPropertyDAO(activity.get()).add(property);
+				new CardDAO(activity.get()).addProperty(card, property);
 				card.addProperty(property);
 			}
+			
+			Card gotten = new CardDAO(activity.get()).get(card.getId());
+			Log.d("Card", "" + gotten);
 		}
 
 		@Override

@@ -1,9 +1,11 @@
 package br.usp.pcs.securetcg.library.communication.json;
 
+
 public class TradeRequestJson {
 
 	private byte[] pku;
 	private long cardID;
+	private String cardJson;
 	
 	public TradeRequestJson() {}
 	
@@ -19,6 +21,13 @@ public class TradeRequestJson {
 	}
 	public void setCardID(long cardID) {
 		this.cardID = cardID;
+	}
+
+	public String getCardJson() {
+		return cardJson;
+	}
+	public void setCardJson(String cardJson) {
+		this.cardJson = cardJson;
 	}
 	
 }

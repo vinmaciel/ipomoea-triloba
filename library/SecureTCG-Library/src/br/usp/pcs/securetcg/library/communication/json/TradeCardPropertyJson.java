@@ -4,6 +4,7 @@ public class TradeCardPropertyJson {
 
 	private byte[] tag;
 	private byte[] r;
+	private byte[] hash;
 	private byte[] info;
 	
 	public TradeCardPropertyJson() {}
@@ -20,6 +21,13 @@ public class TradeCardPropertyJson {
 	}
 	public void setR(byte[] r) {
 		this.r = r;
+	}
+	
+	public byte[] getHash() {
+		return hash;
+	}
+	public void setHash(byte[] hash) {
+		this.hash = hash;
 	}
 	
 	public byte[] getInfo() {

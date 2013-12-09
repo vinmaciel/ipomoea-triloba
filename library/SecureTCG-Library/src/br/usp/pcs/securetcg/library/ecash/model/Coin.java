@@ -9,7 +9,8 @@ public class Coin {
 	
 	private byte[] serial;
 	
-	private List<CoinProperty> properties;
+	//hidden
+	private List<CoinProperty> coinProperties;
 	
 	private List<byte[]> history;
 
@@ -21,16 +22,16 @@ public class Coin {
 	}
 
 	public List<?> getProperties() {
-		return properties;
+		return coinProperties;
 	}
 	@SuppressWarnings("unchecked")
 	public void setProperties(List<?> properties) {
-		this.properties = (List<CoinProperty>) properties;
+		this.coinProperties = (List<CoinProperty>) properties;
 	}
 	public void addProperty(CoinProperty property) {
-		if(this.properties == null)
-			properties = new ArrayList<CoinProperty>();
-		this.properties.add(property);
+		if(this.coinProperties == null)
+			coinProperties = new ArrayList<CoinProperty>();
+		this.coinProperties.add(property);
 	}
 	
 	public List<byte[]> getHistory() {

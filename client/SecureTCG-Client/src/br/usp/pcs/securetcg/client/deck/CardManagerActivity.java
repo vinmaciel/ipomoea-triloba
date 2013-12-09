@@ -51,6 +51,8 @@ public class CardManagerActivity extends Activity {
 	private int source = -1;
 	private Deck deck = null;
 	
+	private boolean sent = false;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -77,6 +79,14 @@ public class CardManagerActivity extends Activity {
 	}
 	
 	@Override
+	protected void onDestroy() {
+		if(source == Constants.DECK_SEND_CARD && !sent) {
+			setResult(RESULT_CANCELED);
+		}
+		super.onDestroy();
+	}
+	
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		unselectAll = menu.add("Unselect all");
 		unselectAll.setOnMenuItemClickListener(new OnClickUnselectAll());
@@ -84,7 +94,7 @@ public class CardManagerActivity extends Activity {
 		viewInfo = menu.add("View card info");
 		viewInfo.setOnMenuItemClickListener(new OnClickViewInfo());
 		
-		if(source == Constants.DECK_ALL) {
+		if(source == Constants.DECK_SEND_CARD) {
 			sendCard = menu.add("Send card");
 			sendCard.setOnMenuItemClickListener(new OnClickSendCard());
 		}
@@ -112,7 +122,6 @@ public class CardManagerActivity extends Activity {
 		
 		switch(source) {
 		case Constants.DECK_ALL:
-			sendCard.setEnabled(selectionSize == 1);
 			break;
 		case Constants.DECK_MANAGEMENT:
 			addCards.setEnabled(true);
@@ -120,6 +129,9 @@ public class CardManagerActivity extends Activity {
 			break;
 		case Constants.DECK_ADD_CARD:
 			insertCards.setEnabled(selectionSize > 0);
+			break;
+		case Constants.DECK_SEND_CARD:
+			sendCard.setEnabled(selectionSize == 1);
 			break;
 		
 		default:
@@ -357,12 +369,12 @@ public class CardManagerActivity extends Activity {
 					break;
 				}
 			
-			//FIXME put right activity
-			Intent sendCardIntent = new Intent(CardManagerActivity.this, CardInfoActivity.class);
+			sent = true;
+			Intent sendCardIntent = new Intent();
 			sendCardIntent.putExtra(Constants.CARD_SELECTED, cardID);
-			startActivity(sendCardIntent);
+			setResult(RESULT_OK, sendCardIntent);
+			finish();
 			
-			//TODO remove card from device
 			return false;
 		}
 		

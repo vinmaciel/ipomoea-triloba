@@ -13,7 +13,7 @@ create table class(
 insert into class (id, name, description, bitmap_path)
 values (1,'The Windy','The Windy''s primary magic is to create strong winds. These winds can be used to blow away objects or bind creatures.','SakuraDeck\\The_windy.jpg');
 insert into class (id, name, description, bitmap_path)
-values (2,'The Fly','The Fly''s main ability is to grant the user flight.','SakuraDeck\\The_big.jpg');
+values (2,'The Fly','The Fly''s main ability is to grant the user flight.','SakuraDeck\\The_fly.jpg');
 insert into class (id, name, description, bitmap_path)
 values (3,'The Shadow','Shadow can touch us, but we can''t touch it.','SakuraDeck\\The_shadow.jpg');
 insert into class (id, name, description, bitmap_path)

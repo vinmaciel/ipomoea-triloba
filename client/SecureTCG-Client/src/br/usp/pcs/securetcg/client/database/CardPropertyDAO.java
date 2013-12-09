@@ -21,6 +21,7 @@ public class CardPropertyDAO extends DatabaseHandler {
 		ContentValues values = new ContentValues();
 		values.put(PROPERTY_TAG, property.getTag());
 		values.put(PROPERTY_R, property.getR());
+		values.put(PROPERTY_HASH, property.getHash());
 		values.put(PROPERTY_INFO, property.getInfo());
 		
 		property.setId( db.insert(TABLE_PROPERTY, null, values) );
@@ -34,7 +35,8 @@ public class CardPropertyDAO extends DatabaseHandler {
 		Cursor cursor = db.query(	TABLE_PROPERTY,
 								new String[] {
 									TABLE_PROPERTY + "." + PROPERTY_ID, TABLE_PROPERTY + "." + PROPERTY_TAG,
-									TABLE_PROPERTY + "." + PROPERTY_R, TABLE_PROPERTY + "." + PROPERTY_INFO
+									TABLE_PROPERTY + "." + PROPERTY_R, TABLE_PROPERTY + "." + PROPERTY_HASH, 
+									TABLE_PROPERTY + "." + PROPERTY_INFO
 								},
 								PROPERTY_ID + "=?",
 								new String[] {String.valueOf(id)},
@@ -46,7 +48,8 @@ public class CardPropertyDAO extends DatabaseHandler {
 			property.setId(cursor.getLong(0));
 			property.setTag(cursor.getBlob(1));
 			property.setR(cursor.getBlob(2));
-			property.setInfo(cursor.getBlob(3));
+			property.setHash(cursor.getBlob(3));
+			property.setInfo(cursor.getBlob(4));
 			
 			cursor.close();
 		}
@@ -62,7 +65,8 @@ public class CardPropertyDAO extends DatabaseHandler {
 		Cursor cursor = db.query(	TABLE_PROPERTY,
 								new String[] {
 									TABLE_PROPERTY + "." + PROPERTY_ID, TABLE_PROPERTY + "." + PROPERTY_TAG,
-									TABLE_PROPERTY + "." + PROPERTY_R, TABLE_PROPERTY + "." + PROPERTY_INFO
+									TABLE_PROPERTY + "." + PROPERTY_R, TABLE_PROPERTY + "." + PROPERTY_HASH,
+									TABLE_PROPERTY + "." + PROPERTY_INFO, TABLE_PROPERTY + "." + PROPERTY_ID_CARD
 								},
 								null, null, null, null, null, null);
 		
@@ -74,7 +78,9 @@ public class CardPropertyDAO extends DatabaseHandler {
 				property.setId(cursor.getLong(0));
 				property.setTag(cursor.getBlob(1));
 				property.setR(cursor.getBlob(2));
-				property.setInfo(cursor.getBlob(3));
+				property.setHash(cursor.getBlob(3));
+				property.setInfo(cursor.getBlob(4));
+				long cardID = cursor.getLong(5);
 				
 				properties.add(property);
 			} while(cursor.moveToNext());
@@ -94,6 +100,7 @@ public class CardPropertyDAO extends DatabaseHandler {
 		values.put(PROPERTY_ID, property.getId());
 		values.put(PROPERTY_TAG, property.getTag());
 		values.put(PROPERTY_R, property.getR());
+		values.put(PROPERTY_HASH, property.getHash());
 		values.put(PROPERTY_INFO, property.getInfo());
 		
 		db.update(TABLE_PROPERTY, values, PROPERTY_ID + "=?", new String[] {String.valueOf(property.getId())});
